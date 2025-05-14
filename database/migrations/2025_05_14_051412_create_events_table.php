@@ -11,13 +11,16 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('users', function (Blueprint $table) {
+        Schema::create('events', function (Blueprint $table) {
             $table->id();
-            
-            $table->unsignedTinyInteger('user_type')->index();
-            $table->string('name',10);
-            $table->string('email',255)->unique();
-            $table->string('password',255);
+
+            $table->string('event_name',50);
+            $table->unsignedBigInteger('category_id');
+            $table->foreign('category_id')->references('id')->on('categories')->onDelete('cascade');
+            $table->longText('filename')->nullable();
+            $table->text('description');
+            $table->datetime('event_date');
+            $table->string('location',50);
 
             $table->datetime('created_at')->default(DB::raw('CURRENT_TIMESTAMP'));
             $table->unsignedInteger('created_by');
@@ -31,6 +34,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('users');
+        Schema::dropIfExists('events');
     }
 };

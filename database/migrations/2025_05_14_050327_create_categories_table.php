@@ -11,14 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('users', function (Blueprint $table) {
+        Schema::create('categories', function (Blueprint $table) {
             $table->id();
-            
-            $table->unsignedTinyInteger('user_type')->index();
-            $table->string('name',10);
-            $table->string('email',255)->unique();
-            $table->string('password',255);
 
+            $table->text('category_name')->unique();
+            
             $table->datetime('created_at')->default(DB::raw('CURRENT_TIMESTAMP'));
             $table->unsignedInteger('created_by');
             $table->datetime('updated_at')->default(DB::raw('CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP'));
@@ -31,6 +28,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('users');
+        Schema::dropIfExists('categories');
     }
 };
