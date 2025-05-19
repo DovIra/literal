@@ -1,17 +1,88 @@
 <x-app-layout>
-    <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            {{ __('Dashboard') }}
-        </h2>
-    </x-slot>
-
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                <div class="p-6 text-gray-900">
-                    {{ __("You're logged in!") }}
-                </div>
+
+            @php
+                $userId = Auth::id();
+            @endphp
+
+            <div class="text-4xl font-bold text-gray-800 mb-6">
+                開催が近いイベント
             </div>
+
+            @if ($events->isNotEmpty())
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    @foreach ($events as $event)
+                        <div class="bg-white rounded-lg shadow-md p-4 flex flex-col items-start space-y-2">
+                            
+                            {{-- ラベル --}}
+                            @if ($event->participants->contains('id', $userId))
+                                <span class="text-green-600 text-sm font-medium">申込み済</span>
+                            @else
+                                <span class="text-red-600 text-sm font-medium">未申し込み</span>
+                            @endif
+
+                            {{-- イベント名 --}}
+                            <h2 class="text-lg font-semibold text-gray-900">
+                                {{ $event->event_name }}
+                            </h2>
+
+                            {{-- イベント説明（1行省略） --}}
+                            <p class="text-gray-700 text-sm overflow-hidden text-ellipsis whitespace-nowrap w-full">
+                                {{ $event->description }}
+                            </p>
+
+                            {{-- 詳細ボタン --}}
+                            <a href="{{ route('events.show', $event->id) }}"
+                            class="text-blue-600 hover:text-blue-800 text-sm font-semibold">
+                                詳細を見る →
+                            </a>
+                        </div>
+                    @endforeach
+                </div>
+            @else
+                <p class="text-gray-600"></p>
+            @endif
+
+            <div class="text-4xl font-semibold text-gray-800">
+                通知
+            </div>
+            @if ($notifications->count() > 0)
+                <div class="max-w-7xl mx-auto mt-10 space-y-4 px-4">
+
+
+                    @foreach ($notifications as $notification)
+                        <div class="w-full bg-white border border-yellow-300 rounded-xl p-4 shadow-sm">
+                            {{-- 通知タイトル --}}
+                            <div class="text-base font-bold text-gray-900 mb-1">
+                                @if ($notification->type == \App\Enums\Type::EventReminder->value)
+                                    {{ $notification->event->event_name }} が間もなく始まります。
+                                @elseif ($notification->type == \App\Enums\Type::NewEvent->value)
+                                    新しい {{ $notification->event->event_name }} が登録されました。
+                                @endif
+                            </div>
+
+                            {{-- 通知メッセージ --}}
+                            <div class="text-sm text-gray-700">
+                                @php
+                                    $formattedDate = \Carbon\Carbon::parse($notification->event->date)->format('Y年m月d日 H:i');
+                                @endphp
+
+                                @if ($notification->type == \App\Enums\Type::EventReminder->value)
+                                    {{ $notification->event->event_name }} が {{ $formattedDate }} に開催されます。お忘れなくご参加ください！
+                                @elseif ($notification->type == \App\Enums\Type::NewEvent->value)
+                                    {{ $notification->event->event_name }} が {{ $formattedDate }} に開催されます。ぜひご参加ください！
+                                @endif
+                            </div>
+
+                            {{-- 開催場所 --}}
+                            <div class="text-xs text-gray-600 mt-2">
+                                開催場所：{{ $notification->event->location }}
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            @endif
         </div>
     </div>
 </x-app-layout>
