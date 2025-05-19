@@ -19,12 +19,12 @@
                 <label for="category" class="form-label">カテゴリ</label>
                 <select name="category_id" id="category" class="form-select" required>
                     @if($categories->isNotEmpty())
-                        <option value=""></option>
+                        <option value="">選択してください</option>
                         @foreach($categories as $category)
-                            <option value="{{ $category->id }}">
-                                {{ old('category_id') == $category->id ? 'selected' : '' }}
-                                {{ $category->name }}
+                            <option value="{{ $category->id }}" @if(request('category_id') == $category->id) selected @endif>
+                                {{ $category->category_name }}
                             </option>
+
                         @endforeach
                     @else
                         <option value="0" selected>カテゴリなし</option>
@@ -32,8 +32,6 @@
                 </select>
                 @error('category_id')<div class="text-danger">{{ $message }}</div>@enderror
             </div>
-
-
 
             <!-- イベント名称 -->
             <div class="mb-3">

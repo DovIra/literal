@@ -8,19 +8,42 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use App\Models\Category;
+use App\Models\User;
+use App\Models\Notification;
+use App\Enums\Type;
+
+
 
 class EventController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $today = Carbon::today();                         // 今日
-        $twoWeeksLater = Carbon::today()->addWeeks(2);      // 2週間後
-        
-        $events = Event::whereBetween('event_date', [$today, $twoWeeksLater])
-                    ->orderBy('event_date', 'desc')
-                    ->get();
+        $query = Event::with('category')->orderBy('created_at', 'desc');
 
-        return view('events.index', compact('events'));
+        if ($request->filled('search')) {
+            $keyword = $request->input('search');
+
+            $query->where(function ($q) use ($keyword) {
+                $q->where('event_name', 'like', "%{$keyword}%")
+                ->orWhere('description', 'like', "%{$keyword}%")
+                ->orWhere('location', 'like', "%{$keyword}%")
+                ->orWhereDate('event_date', 'like', "%{$keyword}%") // 開催日
+                ->orWhereTime('event_date', 'like', "%{$keyword}%") // 開催時刻
+                ->orWhereHas('category', function ($q2) use ($keyword) {
+                    $q2->where('category_name', 'like', "%{$keyword}%");
+                });
+            });
+        }
+
+        if ($request->filled('category_id')) {
+            $query->where('category_id', $request->input('category_id'));
+        }
+
+        $events = $query->get();
+
+        $categories = Category::all(); // カテゴリ一覧
+
+        return view('events.index', compact('events', 'categories'));
     }
 
     public function create()
@@ -35,7 +58,7 @@ class EventController extends Controller
 
         $validated = $request->validate([
             'category_id' => $categoryTableHasData
-                ? 'required|exists:categories.id'  // 通常：カテゴリIDはDBに存在する必要あり
+                ? 'required|exists:categories,id'  // 通常：カテゴリIDはDBに存在する必要あり
                 : 'required|in:0',                 // テーブルが空なら 0 のみ許可
             'event_name' => 'required|string|max:50',
             'description' => 'required|string',
@@ -81,7 +104,7 @@ class EventController extends Controller
             Notification::create([
                 'user_id' => $user->id,
                 'event_id' => $event->id,
-                'type' => 'new event',
+                'type' => Type::NewEvent->value,
                 'created_by' => Auth::id() ?? 0,
                 'updated_by' => Auth::id() ?? 0,
             ]);

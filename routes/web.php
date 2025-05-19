@@ -20,7 +20,9 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/events/create', [EventController::class, 'create'])->name('events.create');
+    Route::get('/events', [EventController::class, 'index'])->name('events.index');
     Route::post('/events', [EventController::class, 'store'])->name('events.store');
+    
 });
 
 require __DIR__.'/auth.php';

@@ -2,9 +2,9 @@
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
 
-            @php
-                $userId = Auth::id();
-            @endphp
+            @auth
+                @php $userId = auth()->id(); @endphp
+            @endauth
 
             <div class="text-4xl font-bold text-gray-800 mb-6">
                 開催が近いイベント
@@ -33,10 +33,10 @@
                             </p>
 
                             {{-- 詳細ボタン --}}
-                            <a href="{{ route('events.show', $event->id) }}"
-                            class="text-blue-600 hover:text-blue-800 text-sm font-semibold">
+                            <span class="text-gray-500 text-sm font-semibold cursor-not-allowed" title="準備中です">
                                 詳細を見る →
-                            </a>
+                            </span>
+
                         </div>
                     @endforeach
                 </div>
