@@ -1,6 +1,6 @@
 <x-app-layout>
     <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+        <div class="max-w-6xl mx-auto sm:px-6 lg:px-8">
 
             @auth
                 @php $userId = auth()->id(); @endphp
@@ -11,9 +11,9 @@
             </div>
 
             @if ($events->isNotEmpty())
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
                     @foreach ($events as $event)
-                        <div class="bg-white rounded-lg shadow-md p-4 flex flex-col items-start space-y-2">
+                        <div class="bg-white border border-gray-300 rounded-lg p-4 flex flex-col items-start space-y-2">
                             
                             {{-- ラベル --}}
                             @if ($event->participants->contains('id', $userId))
@@ -44,15 +44,18 @@
                 <p class="text-gray-600"></p>
             @endif
 
-            <div class="text-4xl font-semibold text-gray-800">
+            <div class="text-4xl font-semibold text-gray-800 mb-6">
                 通知
             </div>
             @if ($notifications->count() > 0)
-                <div class="max-w-7xl mx-auto mt-10 space-y-4 px-4">
-
-
+                <div class="max-w-7xl mx-auto mt-10 px-4">
                     @foreach ($notifications as $notification)
-                        <div class="w-full bg-white border border-yellow-300 rounded-xl p-4 shadow-sm">
+                        <div class="
+                            w-full bg-white p-4
+                            border-x border-t border-gray-300
+                            @if ($loop->first) rounded-t-xl @endif
+                            @if ($loop->last) border-b rounded-b-xl @else rounded-none @endif
+                        ">
                             {{-- 通知タイトル --}}
                             <div class="text-base font-bold text-gray-900 mb-1">
                                 @if ($notification->type == \App\Enums\Type::EventReminder->value)
@@ -65,7 +68,7 @@
                             {{-- 通知メッセージ --}}
                             <div class="text-sm text-gray-700">
                                 @php
-                                    $formattedDate = \Carbon\Carbon::parse($notification->event->date)->format('Y年m月d日 H:i');
+                                    $formattedDate = \Carbon\Carbon::parse($notification->event->event_date)->format('Y年m月d日 H:i');
                                 @endphp
 
                                 @if ($notification->type == \App\Enums\Type::EventReminder->value)

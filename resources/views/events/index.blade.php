@@ -1,37 +1,44 @@
 <x-app-layout>
     <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+        @auth
+            @php $userId = auth()->id(); @endphp
+        @endauth
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="mb-10">
+                <div class="text-4xl font-bold text-gray-800 mb-6">
+                    イベントを探す
+                </div>
+                <form method="GET" action="{{ route('events.index') }}" id="searchForm" class="flex flex-col space-y-4">
+                    
+                    {{-- 検索バー --}}
+                    <input
+                        type="text"
+                        name="search"
+                        value="{{ request('search') }}"
+                        placeholder="Search events"
+                        class="w-full border border-gray-300 rounded px-4 py-2"
+                        id="searchInput"
+                        autocomplete="off"
+                    >
 
-            @auth
-                @php $userId = auth()->id(); @endphp
-            @endauth
-
-            <div class="text-3xl font-bold text-gray-800 mb-6">
-                イベントを探す
+                    {{-- カテゴリ選択 --}}
+                    <div>
+                        <label for="categorySelect" class="block text-sm font-medium text-gray-700 mb-1">Filter by:</label>
+                        <select
+                            name="category_id"
+                            id="categorySelect"
+                            class="w-full border border-gray-300 rounded px-4 py-2"
+                        >
+                            <option value="">すべて</option>
+                            @foreach ($categories as $category)
+                                <option value="{{ $category->id }}" @if(request('category_id') == $category->id) selected @endif>
+                                    {{ $category->category_name }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+                </form>
             </div>
-
-            <form method="GET" action="{{ route('events.index') }}" class="mb-4" id="searchForm">
-                <input
-                    type="text"
-                    name="search"
-                    value="{{ request('search') }}"
-                    placeholder="Search events"
-                    class="form-control mb-2"
-                    id="searchInput"
-                    autocomplete="off"
-                >
-
-                <label for="categorySelect" class="form-label">Filter by:</label>
-                <select name="category_id" id="categorySelect" class="form-control mb-2">
-                    <option value="">すべて</option>
-                    @foreach ($categories as $category)
-                        <option value="{{ $category->id }}" @if(request('category_id') == $category->id) selected @endif>
-                            {{ $category->category_name }}
-                        </option>
-                    @endforeach
-                </select>
-
-            </form>
 
             <script>
                 document.getElementById('searchInput').addEventListener('blur', function() {
@@ -41,8 +48,7 @@
                     document.getElementById('searchForm').submit();
                 });
             </script>
-
-
+            
             @if ($events->isNotEmpty())
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                     @foreach ($events as $event)
@@ -75,6 +81,6 @@
             @else
                 <p class="text-gray-600"></p>
             @endif
-        </div>
+        </div>        
     </div>
 </x-app-layout>

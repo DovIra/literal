@@ -101,10 +101,11 @@ class EventController extends Controller
         $users = User::all();
 
         foreach ($users as $user) {
-            Notification::create([
+            Notification::firstOrCreate([
                 'user_id' => $user->id,
                 'event_id' => $event->id,
                 'type' => Type::NewEvent->value,
+            ], [
                 'created_by' => Auth::id() ?? 0,
                 'updated_by' => Auth::id() ?? 0,
             ]);
