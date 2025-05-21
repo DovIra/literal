@@ -89,7 +89,7 @@ class EventController extends Controller
         $event = Event::create([
             'event_name' => $validated['event_name'],
             'category_id' => $categoryId,
-            'filename' => $filenames ? json_encode($filenames) : null,
+            'filename' => $filenames ?: null,
             'description' => $validated['description'],
             'event_date' => $eventDateTime,
             'location' => $validated['location'],
@@ -112,5 +112,22 @@ class EventController extends Controller
         }
         
         return redirect()->route('login');
+    }
+
+
+    public function show($id)
+    {
+        $event = Event::with(['eventParticipants.user', 'participants'])->findOrFail($id);
+        $currentUserId = Auth::id();
+
+        // 参加順（created_at順）でソート
+        $participants = $event->eventParticipants->sortBy('created_at')->values();
+
+        // ログインユーザーがいれば最上位に
+        $sortedParticipants = $participants->sortBy(function ($participant) use ($currentUserId) {
+            return $participant->user_id === $currentUserId ? 0 : 1;
+        })->values();
+
+        return view('events.show', compact('event', 'sortedParticipants', 'currentUserId'));
     }
 }

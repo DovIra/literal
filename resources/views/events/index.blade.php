@@ -56,9 +56,9 @@
                             
                             {{-- ラベル --}}
                             @if ($event->participants->contains('id', $userId))
-                                <span class="text-green-600 text-sm font-medium">申込み済</span>
+                                <span class="bg-green-600 text-white text-sm font-medium px-2 py-1 rounded">申込み済</span>
                             @else
-                                <span class="text-red-600 text-sm font-medium">未申し込み</span>
+                                <span class="bg-gray-500 text-white text-sm font-medium px-2 py-1 rounded">未申し込み</span>
                             @endif
 
                             {{-- イベント名 --}}
@@ -72,9 +72,11 @@
                             </p>
 
                             {{-- 詳細ボタン --}}
-                            <span class="text-gray-500 text-sm font-semibold cursor-not-allowed" title="準備中です">
-                                詳細を見る →
-                            </span>
+                            <a href="{{ route('events.show', $event->id) }}"
+                                class="inline-block px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition">
+                                詳細を見る
+                            </a>
+
                         </div>
                     @endforeach
                 </div>
