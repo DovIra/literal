@@ -11,8 +11,8 @@ use App\Models\Category;
 use App\Models\User;
 use App\Models\Notification;
 use App\Enums\Type;
-
-
+use Illuminate\Support\Facades\DB;
+use App\Models\EventParticipant;
 
 class EventController extends Controller
 {
@@ -130,4 +130,161 @@ class EventController extends Controller
 
         return view('events.show', compact('event', 'sortedParticipants', 'currentUserId'));
     }
+
+    public function join(Request $request, $eventId)
+    {
+        $userId = auth()->id();
+
+        // 既に参加しているか確認
+        $exists = DB::table('event_participants')
+            ->where('event_id', $eventId)
+            ->where('user_id', $userId)
+            ->exists();
+
+        if (! $exists) {
+            // 新規参加：レコードを挿入
+            DB::table('event_participants')->insert([
+                'event_id'   => $eventId,
+                'user_id'    => $userId,
+                'created_at' => now(),
+                'updated_at' => now(),
+                'created_by' => $userId,
+                'updated_by' => $userId,
+            ]);
+        } else {
+            // 既存レコードがある場合：必要に応じて更新
+            DB::table('event_participants')
+                ->where('event_id', $eventId)
+                ->where('user_id', $userId)
+                ->update([
+                    'updated_at' => now(),
+                    'updated_by' => $userId,
+                ]);
+        }
+
+        // 新たに通知 type=event reminder を作成
+        DB::table('notifications')->insertOrIgnore([
+            'event_id'   => $eventId,
+            'user_id'    => $userId,
+            'type'       => Type::EventReminder->value,
+            'created_at' => now(),
+            'updated_at' => now(),
+            'created_by' => $userId,
+            'updated_by' => $userId,
+        ]);
+
+        return redirect()->back();
+    }
+
+
+    public function cancelParticipation(Request $request, $eventId)
+    {
+        $userId = auth()->id();
+
+        // 参加者テーブルから該当レコードを削除
+        DB::table('event_participants')
+            ->where('event_id', $eventId)
+            ->where('user_id', $userId)
+            ->delete();
+
+        // 通知テーブルから「event reminder」のみ物理削除（new eventは残す）
+        DB::table('notifications')
+            ->where('event_id', $eventId)
+            ->where('user_id', $userId)
+            ->where('type', Type::EventReminder->value)
+            ->delete();
+
+        return redirect()->back()->with('status', '参加をキャンセルしました。');
+    }
+
+    public function edit($id)
+    {
+        $event = Event::findOrFail($id);
+        $categories = Category::all(); // カテゴリ一覧を渡す
+        return view('events.edit', compact('event', 'categories'));
+    }
+
+    public function update(Request $request, $id)
+    {
+        $event = Event::findOrFail($id);
+
+        $validated = $request->validate([
+            'category_id' => 'required|exists:categories,id',
+            'event_name' => 'required|string|max:50',
+            'description' => 'required',
+            'date' => 'required|date',
+            'time' => 'required',
+            'location' => 'required|string|max:255',
+            'images.*' => 'image|mimes:jpeg,png,jpg,gif|max:2048',
+            'delete_images.*' => 'nullable|integer',
+        ]);
+
+        $eventDateTime = Carbon::createFromFormat('Y-m-d H:i', $request->date . ' ' . $request->time)->toDateTimeString();
+
+        // 元画像ファイル名
+        $filenames = $event->filename ?? [];
+
+        // チェックされた画像インデックス
+        $deleteIndexes = $request->input('delete_images', []);
+
+        // 削除：インデックスのズレを防ぐため降順にソート
+        rsort($deleteIndexes);
+        foreach ($deleteIndexes as $index) {
+            if (isset($filenames[$index])) {
+                Storage::disk('public')->delete('images/' . $filenames[$index]); // 実ファイル削除
+                unset($filenames[$index]); // 配列から削除
+            }
+        }
+
+        // 配列を再構成（インデックス詰め）
+        $filenames = array_values($filenames);
+
+        // 新規追加画像
+        if ($request->hasFile('images')) {
+            foreach ($request->file('images') as $image) {
+                if ($image->isValid()) {
+                    $path = $image->store('images', 'public');
+                    $filenames[] = basename($path);
+                }
+            }
+        }
+
+        // 更新
+        $event->update([
+            'category_id' => $validated['category_id'],
+            'event_name' => $validated['event_name'],
+            'description' => $validated['description'],
+            'event_date' => $eventDateTime,
+            'location' => $validated['location'],
+            'filename' => $filenames,
+            'updated_by' => Auth::id(),
+        ]);
+
+        return redirect()->route('events.show', $event->id)->with('success', 'イベントを更新しました');;
+    }
+
+    public function destroy($id)
+    {
+        $event = Event::findOrFail($id);
+        $eventName = $event->event_name;        // 削除前に名前を別変数に保存しておく
+
+        // 作成者チェック
+        if (auth()->id() !== $event->created_by) {
+            abort(403, '権限がありません');
+        }
+
+        // 参加者がいるかチェック
+        $hasParticipants = EventParticipant::where('event_id', $id)->exists();
+
+        if ($hasParticipants) {
+            // 参加者がいるので削除不可。元ページへリダイレクトしてメッセージ表示
+            return redirect()->back()->with('error', 'このイベントには参加者がいるため削除できません。');
+        }
+
+        // 参加者がいなければ削除
+        $event->delete();
+
+        return redirect()->route('events.index')->with('success', "イベント「{$eventName}」を削除しました");
+    }
+
 }

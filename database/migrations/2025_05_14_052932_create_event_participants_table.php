@@ -14,8 +14,8 @@ return new class extends Migration
         Schema::create('event_participants', function (Blueprint $table) {
             $table->id();
 
-            $table->unsignedBigInteger('event_id')->unique();
-            $table->unsignedBigInteger('user_id')->unique();
+            $table->unsignedBigInteger('event_id');
+            $table->unsignedBigInteger('user_id');
             $table->foreign('event_id')->references('id')->on('events')->onDelete('cascade');
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
 
@@ -23,6 +23,9 @@ return new class extends Migration
             $table->unsignedInteger('created_by');
             $table->datetime('updated_at')->default(DB::raw('CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP'));
             $table->unsignedInteger('updated_by');
+
+            // 複合ユニーク制約（1ユーザーが1イベントに1回だけ参加可能）
+            $table->unique(['event_id', 'user_id']);
         });
     }
 

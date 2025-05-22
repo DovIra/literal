@@ -8,6 +8,18 @@
             @php
                 $eventDate = \Carbon\Carbon::parse($event->event_date);
             @endphp
+
+            @if(session('error'))
+                <div class="bg-red-200 text-red-800 px-4 py-2 rounded mb-4">
+                    {{ session('error') }}
+                </div>
+            @endif
+
+            @if(session('success'))
+                <div class="bg-green-200 text-green-800 px-4 py-2 rounded mb-4">
+                    {{ session('success') }}
+                </div>
+            @endif
             
             <div class="text-4xl font-bold text-gray-800 mb-6">
                 イベント詳細
@@ -136,30 +148,42 @@
             {{-- 編集・削除ボタン（イベント作成者のみ） --}}
             <div class="flex justify-end space-x-2 mt-4">
                 @if (auth()->id() === $event->created_by)
-                    <a href="#"
-                        class="bg-blue-500 hover:bg-blue-600 text-white text-sm px-4 py-2 rounded"
-                        onclick="alert('編集機能は未実装です'); return false;">
-                        編集
+                    <a href="{{ route('events.edit', ['id' => $event->id]) }}"
+                    class="inline-block bg-blue-500 hover:bg-blue-600 text-white text-sm px-4 py-2 rounded cursor-pointer select-none">
+                    編集
                     </a>
-                    <button type="button"
-                        class="bg-red-500 hover:bg-red-600 text-white text-sm px-4 py-2 rounded"
-                        onclick="if(confirm('本当に削除しますか？')) { alert('削除機能は未実装です'); }">
-                        削除
-                    </button>
+                    <form action="{{ route('events.destroy', ['id' => $event->id]) }}" method="POST" style="display:inline;">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit"
+                            class="bg-red-500 hover:bg-red-600 text-white text-sm px-4 py-2 rounded"
+                            onclick="return confirm('本当に削除しますか？');">
+                            削除
+                        </button>
+                    </form>
                 @endif
             </div>
 
             {{-- 参加するボタン（非参加者のみ） --}}
             <div class="flex justify-end mt-2">
                 @auth
-                    @if (! $event->participants->pluck('id')->contains(auth()->id()))
-                        <div class="flex justify-end mt-2">
-                            <button type="button"
-                                onclick="alert('参加機能は未実装です');"
+                    @if ($event->participants->pluck('id')->contains(auth()->id()))
+                        <form method="POST" action="{{ route('events.cancel', ['id' => $event->id]) }}">
+                            @csrf
+                            <button type="submit"
+                                class="bg-red-500 hover:bg-red-600 text-white text-sm px-4 py-2 rounded"
+                                onclick="return confirm('参加をキャンセルしてもよろしいですか？');">
+                                参加をキャンセルする
+                            </button>
+                        </form>
+                    @else
+                        <form method="POST" action="{{ route('events.join', ['id' => $event->id]) }}">
+                            @csrf    
+                            <button type="submit"
                                 class="bg-green-500 hover:bg-green-600 text-white text-sm px-4 py-2 rounded">
                                 参加する
                             </button>
-                        </div>
+                        </form>
                     @endif
                 @endauth
             </div>

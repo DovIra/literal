@@ -12,6 +12,10 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules;
 use Illuminate\View\View;
 use App\Enums\UserType;
+use App\Models\Event;
+use Carbon\Carbon;
+use App\Models\Notification;
+use App\Enums\Type;
 
 class RegisteredUserController extends Controller
 {
@@ -44,6 +48,21 @@ class RegisteredUserController extends Controller
             'created_by' => 0,
             'updated_by' => 0,
         ]);
+
+        // 開催日が今日以降のイベントを取得
+        $upcomingEvents = Event::where('event_date', '>=', Carbon::today())->get();
+
+        // 通知を作成（type: new event）
+        foreach ($upcomingEvents as $event) {
+            Notification::firstOrCreate([
+                'user_id' => $user->id,
+                'event_id' => $event->id,
+                'type' => Type::NewEvent->value,
+            ], [
+                'created_by' => 0,
+                'updated_by' => 0,
+            ]);
+        }
 
         event(new Registered($user));
         return redirect() -> route('login');

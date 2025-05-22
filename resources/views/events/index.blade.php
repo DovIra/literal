@@ -3,6 +3,13 @@
         @auth
             @php $userId = auth()->id(); @endphp
         @endauth
+
+        @if(session('success'))
+            <div class="bg-green-200 text-green-800 px-4 py-2 rounded mb-4">
+                {{ session('success') }}
+            </div>
+        @endif
+
         <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="mb-10">
                 <div class="text-4xl font-bold text-gray-800 mb-6">
