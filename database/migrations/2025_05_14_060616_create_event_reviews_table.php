@@ -14,10 +14,11 @@ return new class extends Migration
         Schema::create('event_reviews', function (Blueprint $table) {
             $table->id();
 
-            $table->unsignedBigInteger('event_id')->unique();
-            $table->unsignedBigInteger('user_id')->unique();
+            $table->unsignedBigInteger('event_id');
+            $table->unsignedBigInteger('user_id');
             $table->foreign('event_id')->references('id')->on('events')->onDelete('cascade');
-            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');            $table->unsignedTinyInteger('rating');
+            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
+            $table->unsignedTinyInteger('rating');
             $table->text('comment');
 
             $table->datetime('created_at')->default(DB::raw('CURRENT_TIMESTAMP'));

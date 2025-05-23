@@ -13,6 +13,8 @@ use App\Models\Notification;
 use App\Enums\Type;
 use Illuminate\Support\Facades\DB;
 use App\Models\EventParticipant;
+use App\Models\EventReview;
+
 
 class EventController extends Controller
 {
@@ -117,7 +119,7 @@ class EventController extends Controller
 
     public function show($id)
     {
-        $event = Event::with(['eventParticipants.user', 'participants'])->findOrFail($id);
+        $event = Event::with(['eventParticipants.user', 'participants', 'reviews.user'])->findOrFail($id);
         $currentUserId = Auth::id();
 
         // 参加順（created_at順）でソート
@@ -128,7 +130,25 @@ class EventController extends Controller
             return $participant->user_id === $currentUserId ? 0 : 1;
         })->values();
 
-        return view('events.show', compact('event', 'sortedParticipants', 'currentUserId'));
+        // イベント日や今日の比較
+        $eventDate = Carbon::parse($event->event_date);
+        $isTodayOrAfter = Carbon::today()->greaterThanOrEqualTo($eventDate->copy()->startOfDay());
+
+        // このユーザーがレビュー済みか？
+        $hasReviewed = $event->reviews->contains('user_id', $currentUserId);
+
+        // このユーザーが参加者か？
+        $isParticipant = $event->participants->contains('id', $currentUserId);
+
+        return view('events.show', compact(
+            'event',
+            'sortedParticipants',
+            'currentUserId',
+            'eventDate',
+            'isTodayOrAfter',
+            'hasReviewed',
+            'isParticipant',
+        ));
     }
 
     public function join(Request $request, $eventId)
@@ -285,6 +305,32 @@ class EventController extends Controller
         $event->delete();
 
         return redirect()->route('events.index')->with('success', "イベント「{$eventName}」を削除しました");
+    }
+
+    public function reviewForm($id)
+    {
+        $event = Event::findOrFail($id);
+        return view('events.review', compact('event'));
+    }
+
+    public function reviewStore(Request $request, $id)
+    {
+        $request->validate([
+            'rating' => 'required|integer|min:1|max:5',
+            'comment' => 'required|string|max:1000',
+        ]);
+
+        EventReview::create([
+            'event_id'   => $id,
+            'user_id'    => Auth::id(),
+            'rating'     => $request->rating,
+            'comment'    => $request->comment,
+            'created_by' => Auth::id(),
+            'updated_by' => Auth::id(),
+        ]);
+
+        return redirect()->route('events.show', $id)
+            ->with('success', 'レビューを投稿しました。');
     }
 
 }

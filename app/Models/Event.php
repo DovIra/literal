@@ -39,6 +39,12 @@ class Event extends Model
         return $this->belongsTo(User::class, 'created_by');
     }
 
+    public function reviews()
+    {
+        // EventReviewモデルとの1対多リレーション
+        return $this->hasMany(EventReview::class);
+    }
+
     protected $casts = [
         'filename' => 'array',
     ];

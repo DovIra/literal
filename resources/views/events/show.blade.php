@@ -5,10 +5,6 @@
                 @php $userId = auth()->id(); @endphp
             @endauth
 
-            @php
-                $eventDate = \Carbon\Carbon::parse($event->event_date);
-            @endphp
-
             @if(session('error'))
                 <div class="bg-red-200 text-red-800 px-4 py-2 rounded mb-4">
                     {{ session('error') }}
@@ -144,14 +140,15 @@
                     @endif
                 </div>
             </div>
-
-            {{-- 編集・削除ボタン（イベント作成者のみ） --}}
+            {{-- 編集・削除ボタン（開催日以前、イベント作成者のみ） --}}
             <div class="flex justify-end space-x-2 mt-4">
-                @if (auth()->id() === $event->created_by)
+                @if (!$isTodayOrAfter && auth()->id() === $event->created_by)
                     <a href="{{ route('events.edit', ['id' => $event->id]) }}"
                     class="inline-block bg-blue-500 hover:bg-blue-600 text-white text-sm px-4 py-2 rounded cursor-pointer select-none">
                     編集
                     </a>
+                @endif
+                @if (auth()->id() === $event->created_by)
                     <form action="{{ route('events.destroy', ['id' => $event->id]) }}" method="POST" style="display:inline;">
                         @csrf
                         @method('DELETE')
@@ -163,30 +160,45 @@
                     </form>
                 @endif
             </div>
-
-            {{-- 参加するボタン（非参加者のみ） --}}
-            <div class="flex justify-end mt-2">
-                @auth
-                    @if ($event->participants->pluck('id')->contains(auth()->id()))
-                        <form method="POST" action="{{ route('events.cancel', ['id' => $event->id]) }}">
-                            @csrf
-                            <button type="submit"
-                                class="bg-red-500 hover:bg-red-600 text-white text-sm px-4 py-2 rounded"
-                                onclick="return confirm('参加をキャンセルしてもよろしいですか？');">
-                                参加をキャンセルする
-                            </button>
-                        </form>
-                    @else
-                        <form method="POST" action="{{ route('events.join', ['id' => $event->id]) }}">
-                            @csrf    
-                            <button type="submit"
+            @if (!$isTodayOrAfter)
+                {{-- 参加ボタン(開催日以前) --}}
+                <div class="flex justify-end mt-2">
+                    @auth
+                        @if ($isParticipant)
+                            {{-- 参加キャンセル（参加者のみ）--}}
+                            <form method="POST" action="{{ route('events.cancel', ['id' => $event->id]) }}">
+                                @csrf
+                                <button type="submit"
+                                    class="bg-red-500 hover:bg-red-600 text-white text-sm px-4 py-2 rounded"
+                                    onclick="return confirm('参加をキャンセルしてもよろしいですか？');">
+                                    参加をキャンセルする
+                                </button>
+                            </form>
+                        @else
+                            {{-- 参加する（非参加者のみ）--}}
+                            <form method="POST" action="{{ route('events.join', ['id' => $event->id]) }}">
+                                @csrf    
+                                <button type="submit"
+                                    class="bg-green-500 hover:bg-green-600 text-white text-sm px-4 py-2 rounded">
+                                    参加する
+                                </button>
+                            </form>
+                        @endif
+                    @endauth
+                </div>
+            @else
+                {{-- レビューボタン（開催日以降、参加者のみ、未レビューのみ） --}}
+                <div class="flex justify-end mt-2">
+                    @auth
+                        @if ($isParticipant && $hasReviewed)
+                            <a href="{{ route('events.review.form', ['id' => $event->id]) }}"
                                 class="bg-green-500 hover:bg-green-600 text-white text-sm px-4 py-2 rounded">
-                                参加する
-                            </button>
-                        </form>
-                    @endif
-                @endauth
-            </div>
+                                レビューする
+                            </a>
+                        @endif
+                    @endauth
+                </div>
+            @endif
         </div>        
     </div>
 </x-app-layout>

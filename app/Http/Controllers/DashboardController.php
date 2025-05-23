@@ -29,35 +29,54 @@ class DashboardController extends Controller
             ->where('user_id', $user->id)
             ->where('type', Type::EventReminder->value)
             ->whereIn('event_id', $joinedEventIds)
-            ->whereHas('event', function ($query) use ($today) {
-                $query->whereBetween('event_date', [$today->copy(), $today->copy()->addDays(7)]);
-            })
             ->get()
-            ->filter(function ($notification) use ($today) {
+            ->filter(function ($notification) {
+                $today = now()->startOfDay();
+
                 $eventDate = optional($notification->event)->event_date;
-                return $eventDate && Carbon::parse($eventDate)->gte($today);
+                if (!$eventDate) {
+                    return false;
+                }
+                $eventDay = Carbon::parse($eventDate)->startOfDay();
+
+                // 今日が「イベント開催日の7日前以上かつ当日以下」か判定
+                // つまり eventDay - 7日 <= today <= eventDay
+                return $today->between($eventDay->copy()->subDays(7), $eventDay);
             })
             ->map(function ($notification) {
                 $notification->virtual_start_at = $notification->created_at;
                 return $notification;
             });
 
+
         // NewEvent：ログインユーザの通知かつイベント作成から10日以内
         $newEventNotifications = Notification::with('event')
             ->where('user_id', $user->id)
             ->where('type', Type::NewEvent->value)
-            ->whereHas('event', function ($query) {
-                $query->where('created_at', '>=', now()->subDays(10));
-            })
             ->get()
             ->filter(function ($notification) {
-                return $notification->created_at->gte(now()->subDays(10));
+                $today = now()->startOfDay(); // 今日の日付（時刻なし）
+                $createdAt = $notification->created_at->startOfDay(); // 通知作成日
+
+                // 通知作成から10日以内か？
+                $within10Days = $today->lte($createdAt->copy()->addDays(9));
+
+                // イベント開催日が存在し、今日が開催日以前（当日含む）か？
+                $eventDate = optional($notification->event)->event_date;
+                if (!$eventDate) {
+                    return false;
+                }
+                $eventDay = Carbon::parse($eventDate)->startOfDay();
+                $beforeOrOnEventDay = $today->lte($eventDay);
+
+                return $within10Days && $beforeOrOnEventDay;
             })
             ->unique('event_id')
             ->map(function ($notification) {
                 $notification->virtual_start_at = $notification->created_at;
                 return $notification;
             });
+
 
         // マージして通知開始日の降順でソート
         $notifications = $eventReminderNotifications
