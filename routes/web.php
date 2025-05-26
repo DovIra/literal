@@ -4,6 +4,7 @@ use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EventController;
+use App\Http\Controllers\CalendarController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -24,7 +25,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/events/{id}', [EventController::class, 'show'])->name('events.show');
     Route::get('/events/{id}/edit', [EventController::class, 'edit'])->name('events.edit');
     Route::get('/events/{id}/review', [EventController::class, 'reviewForm'])->name('events.review.form'); // レビュー作成フォーム表示
-
+    Route::get('/review/{reviewId}/edit', [EventController::class, 'reviewEdit'])->name('review.edit'); // レビュー編集フォーム表示
+    Route::get('/calendar', [CalendarController::class, 'index'])->name('calendar.index');
+    
     Route::post('/events', [EventController::class, 'store'])->name('events.store');
     Route::post('/events/{id}', [EventController::class, 'show'])->name('events.show');
     Route::post('/events/{id}/join', [EventController::class, 'join'])->name('events.join');
@@ -32,10 +35,14 @@ Route::middleware('auth')->group(function () {
     Route::post('/events/{id}/review', [EventController::class, 'reviewStore'])->name('events.review.store'); // レビュー保存処理
 
     Route::put('/events/{id}', [EventController::class, 'update'])->name('events.update');
+    Route::put('/review/{reviewId}', [EventController::class, 'reviewUpdate'])->name('review.update'); // レビュー更新処理
+
     Route::delete('/events/{id}/image/{index}', [EventController::class, 'removeImage'])->name('events.image.remove');
     Route::delete('/events/{id}', [EventController::class, 'destroy'])->name('events.destroy');
+    Route::delete('/review/{reviewId}', [EventController::class, 'reviewDestroy'])->name('review.destroy'); // レビュー削除処理
+
     
-    
+
 });
 
 require __DIR__.'/auth.php';

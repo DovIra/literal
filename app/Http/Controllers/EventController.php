@@ -333,4 +333,43 @@ class EventController extends Controller
             ->with('success', 'レビューを投稿しました。');
     }
 
+    public function reviewEdit($reviewId)
+    {
+        $review = EventReview::with('event')->where('id', $reviewId)
+            ->where('user_id', Auth::id())
+            ->firstOrFail();
+
+        $event = $review->event; // リレーションを使って取得
+
+        return view('events.review_edit', compact('event', 'review'));
+    }
+
+    public function reviewDestroy($reviewId)
+    {
+        $review = EventReview::where('id', $reviewId)
+            ->where('user_id', Auth::id())
+            ->firstOrFail();
+
+        $eventId = $review->event_id;
+        $review->delete();
+
+        return redirect()->route('events.show', $eventId)->with('success', 'レビューを削除しました。');
+    }
+    
+    public function reviewUpdate(Request $request, $reviewId)
+    {
+        $review = EventReview::where('id', $reviewId)
+            ->where('user_id', Auth::id())
+            ->firstOrFail();
+
+        $validated = $request->validate([
+            'rating' => 'required|integer|min:1|max:5',
+            'comment' => 'required|string|max:1000',
+        ]);
+
+        $review->update($validated);
+
+        return redirect()->route('events.show', $review->event_id)->with('success', 'レビューを更新しました。');
+    }
+
 }

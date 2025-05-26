@@ -2,18 +2,21 @@
     <div class="py-12">
         <div class="max-w-2xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6">
-                <form method="POST" action="{{ route('events.review.store', ['id' => $event->id]) }}">
+                <form method="POST" action="{{ route('review.update', ['reviewId' => $review->id]) }}">
                     @csrf
+                    @method('PUT')
+
+                    <h2 class="text-xl font-semibold mb-4">「{{ $event->title }}」のレビューを編集</h2>
 
                     <!-- レーティング（リアルタイム更新） -->
                     <div class="mb-4">
                         <label class="block text-sm font-medium text-gray-700 mb-1">評価</label>
-                        <input type="hidden" name="rating" id="ratingInput" value="{{ old('rating', 0) }}">
-
+                        <input type="hidden" name="rating" id="ratingInput" value="{{ old('rating', $review->rating ?? 0) }}">
+                        
                         <div id="starDisplay" class="flex text-2xl text-yellow-500 cursor-pointer select-none">
                             @for ($i = 1; $i <= 5; $i++)
                                 <span data-value="{{ $i }}">
-                                    @if ($i <= old('rating', 0))
+                                    @if ($i <= old('rating', $review->rating ?? 0))
                                         ★
                                     @else
                                         ☆
@@ -30,7 +33,7 @@
                     <!-- コメント -->
                     <div class="mb-4">
                         <label for="comment" class="block text-sm font-medium text-gray-700">コメント</label>
-                        <textarea name="comment" id="comment" rows="4" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm" required>{{ old('comment') }}</textarea>
+                        <textarea name="comment" id="comment" rows="4" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm" required>{{ old('comment', $review->comment) }}</textarea>
                         @error('comment')
                             <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
                         @enderror
@@ -39,11 +42,12 @@
                     <!-- 送信ボタン -->
                     <div class="text-right">
                         <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">
-                            送信
+                            更新
                         </button>
                     </div>
                 </form>
             </div>
+
             <!-- スクリプト -->
             <script>
                 document.addEventListener('DOMContentLoaded', function () {

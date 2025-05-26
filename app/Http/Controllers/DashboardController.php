@@ -33,7 +33,7 @@ class DashboardController extends Controller
             ->filter(function ($notification) {
                 $today = now()->startOfDay();
 
-                $eventDate = optional($notification->event)->event_date;
+                $eventDate = $notification->event?->event_date;
                 if (!$eventDate) {
                     return false;
                 }

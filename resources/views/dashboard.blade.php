@@ -38,7 +38,6 @@
                                 詳細を見る
                             </a>
 
-
                         </div>
                     @endforeach
                 </div>

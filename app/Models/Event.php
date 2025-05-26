@@ -47,9 +47,6 @@ class Event extends Model
 
     protected $casts = [
         'filename' => 'array',
+        'event_date' => 'datetime',
     ];
-
-
-
-
 }

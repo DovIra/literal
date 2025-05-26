@@ -160,6 +160,7 @@
                     </form>
                 @endif
             </div>
+
             @if (!$isTodayOrAfter)
                 {{-- 参加ボタン(開催日以前) --}}
                 <div class="flex justify-end mt-2">
@@ -190,7 +191,7 @@
                 {{-- レビューボタン（開催日以降、参加者のみ、未レビューのみ） --}}
                 <div class="flex justify-end mt-2">
                     @auth
-                        @if ($isParticipant && $hasReviewed)
+                        @if ($isParticipant && !$hasReviewed)
                             <a href="{{ route('events.review.form', ['id' => $event->id]) }}"
                                 class="bg-green-500 hover:bg-green-600 text-white text-sm px-4 py-2 rounded">
                                 レビューする
@@ -199,6 +200,76 @@
                     @endauth
                 </div>
             @endif
-        </div>        
+
+            <div class="text-xl font-bold">平均評価: {{ number_format($event->reviews->avg('rating'), 1) }} ★</div>
+            <p>レビュー数: {{ $event->reviews->count() }} 件</p>
+            @if ($event->reviews->isNotEmpty())
+                <ul>
+                    @foreach ($event->reviews as $review)
+                        <li class="relative border p-3 mb-2 rounded shadow">
+                            {{-- ユーザー名と投稿日時 --}}
+                            <div class="mt-1 flex justify-between items-start">
+                                <div>
+                                    <strong>{{ $review->user->name }}</strong><br>
+                                    {{ $review->created_at->format('Y/m/d') }}
+                                </div>
+
+                                {{-- 三点メニュー（ログインユーザーのレビューだけ） --}}
+                                @if ($review->user_id === $currentUserId)
+                                    <div class="relative inline-block text-left">
+                                        <button onclick="toggleDropdown({{ $review->id }})" class="text-gray-600 hover:text-black focus:outline-none">
+                                            ︙
+                                        </button>
+                                        <div id="dropdown-{{ $review->id }}" class="hidden absolute right-0 mt-1 w-32 bg-white border rounded shadow z-10">
+                                            <a href="{{ route('review.edit', $review->id) }}" class="block px-4 py-2 hover:bg-gray-100">編集</a>
+
+                                            <form method="POST" action="{{ route('review.destroy', $review->id) }}" onsubmit="return confirm('削除しますか？')">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="block w-full text-left px-4 py-2 hover:bg-gray-100">削除</button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                @endif
+                            </div>
+
+                            {{-- レーティング --}}
+                            <div class="mt-1 text-xl text-yellow-500">
+                                @for ($i = 1; $i <= 5; $i++)
+                                    @if ($i <= $review->rating)
+                                        ★
+                                    @else
+                                        ☆
+                                    @endif
+                                @endfor
+                            </div>
+
+                            {{-- コメント --}}
+                            <p class="mt-1">{{ $review->comment }}</p>
+                        </li>
+                    @endforeach
+                </ul>
+            @endif
+        </div> 
+        <script>
+            function toggleDropdown(reviewId) {
+                const dropdown = document.getElementById(`dropdown-${reviewId}`);
+                dropdown.classList.toggle('hidden');
+
+                // 他の開いているドロップダウンを閉じる（オプション）
+                document.querySelectorAll('[id^="dropdown-"]').forEach(el => {
+                    if (el.id !== `dropdown-${reviewId}`) {
+                        el.classList.add('hidden');
+                    }
+                });
+            }
+
+            // ドロップダウン以外をクリックしたら閉じる
+            document.addEventListener('click', function (event) {
+                if (!event.target.closest('.text-left')) {
+                    document.querySelectorAll('[id^="dropdown-"]').forEach(el => el.classList.add('hidden'));
+                }
+            });
+        </script>     
     </div>
 </x-app-layout>
