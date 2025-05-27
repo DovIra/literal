@@ -39,7 +39,7 @@
             <!-- イベント名称 -->
             <div class="mb-3">
                 <label for="name" class="block text-sm font-bold text-gray-700 mb-1">名称</label>
-                <input type="text" name="event_name" id="name" class="w-full border-gray-300 rounded-md  focus:ring-blue-500 focus:border-blue-500" maxlength="50" required>
+                <input type="text" name="event_name" id="name" placeholder='Enter event title' class="w-full border-gray-300 rounded-md  focus:ring-blue-500 focus:border-blue-500" maxlength="50" required>
             </div>
 
             <!-- 画像選択 -->
@@ -47,8 +47,8 @@
                 <label class="block text-sm font-bold text-gray-700 mb-1">画像の選択</label>
                     <div id="image-fields">
                         <div class="flex items-center mb-2">
-                            <input type="file" name="images[]" class="w-full border border-gray-300 rounded-md " />
-                            <button type="button" class="add-image px-2 py-1 border rounded">＋</button>
+                            <input type="file" name="images[]" class="w-full border border-gray-300 rounded-l-md " />
+                            <button type="button" class="add-image px-2 py-1 border border-green-600 text-green-600 rounded-r-md">＋</button>
                         </div>
                     </div>
             </div>
@@ -56,13 +56,13 @@
             <!-- イベント説明 -->
             <div class="mb-3">
                 <label for="description" class="block text-sm font-bold text-gray-700 mb-1">説明</label>
-                <textarea name="description" id="description" class="w-full border-gray-300 rounded-md  focus:ring-blue-500 focus:border-blue-500" rows="4" required></textarea>
+                <textarea name="description" id="description" placeholder='Enter event description' class="w-full border-gray-300 rounded-md  focus:ring-blue-500 focus:border-blue-500" rows="4" required></textarea>
             </div>
 
             <!-- 開催日 -->
             <div class="mb-3">
                 <label for="date" class="block text-sm font-bold text-gray-700 mb-1">開催日</label>
-                <input type="date" name="date" id="date" class="w-full border-gray-300 rounded-md  focus:ring-blue-500 focus:border-blue-500" min="{{ date('Y-m-d') }}" required>
+                <input type="date" name="date" id="date"  class="w-full border-gray-300 rounded-md  focus:ring-blue-500 focus:border-blue-500" min="{{ date('Y-m-d') }}" required>
             </div>
 
             <!-- 開催時刻 -->
@@ -74,7 +74,7 @@
             <!-- 開催場所 -->
             <div class="mb-3">
                 <label for="location" class="block text-sm font-bold text-gray-700 mb-1">場所</label>
-                <input type="text" name="location" id="location" class="w-full border-gray-300 rounded-md  focus:ring-blue-500 focus:border-blue-500" required>
+                <input type="text" name="location" id="location" placeholder='Enter event location' class="w-full border-gray-300 rounded-md  focus:ring-blue-500 focus:border-blue-500" required>
             </div>
 
             <!-- 登録ボタン -->
@@ -100,18 +100,18 @@
                 const input = document.createElement('input');
                 input.type = 'file';
                 input.name = 'images[]';
-                input.classList.add('w-full', 'border', 'border-gray-300', 'rounded-md');
+                input.classList.add('w-full', 'border', 'border-gray-300', 'rounded-l-md');
 
                 // 追加ボタン（＋）
                 const addBtn = document.createElement('button');
                 addBtn.type = 'button';
-                addBtn.classList.add('add-image', 'px-2', 'py-1', 'border', 'rounded');
+                addBtn.classList.add('add-image', 'px-2', 'py-1', 'border', 'border-green-600', 'text-green-600');
                 addBtn.textContent = '＋';
 
                 // 削除ボタン（－）
                 const removeBtn = document.createElement('button');
                 removeBtn.type = 'button';
-                removeBtn.classList.add('remove-image', 'px-2', 'py-1', 'border', 'rounded');
+                removeBtn.classList.add('remove-image', 'px-2', 'py-1', 'border', 'border-red-600', 'text-red-600', 'rounded-r-md');
                 removeBtn.textContent = '－';
 
                 newGroup.appendChild(input);

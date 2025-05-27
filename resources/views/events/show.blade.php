@@ -117,7 +117,7 @@
                         <table class="w-full border border-gray-300 text-sm">
                             <thead class="bg-gray-50">
                                 <tr>
-                                    <th class="border px-2 py-1 text-left w-16">連番</th>
+                                    <th class="border px-2 py-1 text-left w-16">＃</th>
                                     <th class="border px-2 py-1 text-left">名前</th>
                                     <th class="border px-2 py-1 text-left">メールアドレス</th>
                                 </tr>
@@ -140,6 +140,7 @@
                     @endif
                 </div>
             </div>
+
             {{-- 編集・削除ボタン（開催日以前、イベント作成者のみ） --}}
             <div class="flex justify-end space-x-2 mt-4">
                 @if (!$isTodayOrAfter && auth()->id() === $event->created_by)
@@ -187,7 +188,58 @@
                         @endif
                     @endauth
                 </div>
-            @else
+            @endif
+
+            @if($isTodayOrAfter)
+                <div class="text-xl font-bold">平均評価: {{ number_format($event->reviews->avg('rating'), 1) }} ★</div>
+                <p>レビュー数: {{ $event->reviews->count() }} 件</p>
+                @if ($event->reviews->isNotEmpty())
+                    <ul>
+                        @foreach ($event->reviews as $review)
+                            <li class="relative border p-3 mb-2 rounded shadow">
+                                <div class="mt-1 flex justify-between items-start">
+                                    {{-- ユーザー名と投稿日時 --}}
+                                    <div>
+                                        <strong>{{ $review->user->name }}</strong><br>
+                                        {{ $review->created_at->format('Y/m/d') }}
+                                    </div>
+
+                                    {{-- 三点メニュー（ログインユーザーのレビューだけ） --}}
+                                    @if ($review->user_id === $currentUserId)
+                                        <div class="relative inline-block text-left">
+                                            <button onclick="toggleDropdown({{ $review->id }})" class="text-gray-600 hover:text-black focus:outline-none">
+                                                ︙
+                                            </button>
+                                            <div id="dropdown-{{ $review->id }}" class="hidden absolute right-0 mt-1 w-32 bg-white border rounded shadow z-10">
+                                                <a href="{{ route('review.edit', $review->id) }}" class="block px-4 py-2 hover:bg-gray-100">編集</a>
+
+                                                <form method="POST" action="{{ route('review.destroy', $review->id) }}" onsubmit="return confirm('削除しますか？')">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" class="block w-full text-left px-4 py-2 hover:bg-gray-100">削除</button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    @endif
+                                </div>
+
+                                {{-- レーティング --}}
+                                <div class="mt-1 text-xl text-yellow-500">
+                                    @for ($i = 1; $i <= 5; $i++)
+                                        @if ($i <= $review->rating)
+                                            ★
+                                        @else
+                                            ☆
+                                        @endif
+                                    @endfor
+                                </div>
+
+                                {{-- コメント --}}
+                                <p class="mt-1">{{ $review->comment }}</p>
+                            </li>
+                        @endforeach
+                    </ul>
+                @endif
                 {{-- レビューボタン（開催日以降、参加者のみ、未レビューのみ） --}}
                 <div class="flex justify-end mt-2">
                     @auth
@@ -199,56 +251,6 @@
                         @endif
                     @endauth
                 </div>
-            @endif
-
-            <div class="text-xl font-bold">平均評価: {{ number_format($event->reviews->avg('rating'), 1) }} ★</div>
-            <p>レビュー数: {{ $event->reviews->count() }} 件</p>
-            @if ($event->reviews->isNotEmpty())
-                <ul>
-                    @foreach ($event->reviews as $review)
-                        <li class="relative border p-3 mb-2 rounded shadow">
-                            {{-- ユーザー名と投稿日時 --}}
-                            <div class="mt-1 flex justify-between items-start">
-                                <div>
-                                    <strong>{{ $review->user->name }}</strong><br>
-                                    {{ $review->created_at->format('Y/m/d') }}
-                                </div>
-
-                                {{-- 三点メニュー（ログインユーザーのレビューだけ） --}}
-                                @if ($review->user_id === $currentUserId)
-                                    <div class="relative inline-block text-left">
-                                        <button onclick="toggleDropdown({{ $review->id }})" class="text-gray-600 hover:text-black focus:outline-none">
-                                            ︙
-                                        </button>
-                                        <div id="dropdown-{{ $review->id }}" class="hidden absolute right-0 mt-1 w-32 bg-white border rounded shadow z-10">
-                                            <a href="{{ route('review.edit', $review->id) }}" class="block px-4 py-2 hover:bg-gray-100">編集</a>
-
-                                            <form method="POST" action="{{ route('review.destroy', $review->id) }}" onsubmit="return confirm('削除しますか？')">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="submit" class="block w-full text-left px-4 py-2 hover:bg-gray-100">削除</button>
-                                            </form>
-                                        </div>
-                                    </div>
-                                @endif
-                            </div>
-
-                            {{-- レーティング --}}
-                            <div class="mt-1 text-xl text-yellow-500">
-                                @for ($i = 1; $i <= 5; $i++)
-                                    @if ($i <= $review->rating)
-                                        ★
-                                    @else
-                                        ☆
-                                    @endif
-                                @endfor
-                            </div>
-
-                            {{-- コメント --}}
-                            <p class="mt-1">{{ $review->comment }}</p>
-                        </li>
-                    @endforeach
-                </ul>
             @endif
         </div> 
         <script>

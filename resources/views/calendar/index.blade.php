@@ -1,5 +1,3 @@
-<!-- 次回変更点：その月ではない部分は灰色、その月の部分は青色で下線あり、
- 今日は薄ピンクの背景、それ以外は白の背景、その月の部分だけイベント表示 -->
 <x-app-layout>
     <div class="py-12 px-4 max-w-7xl mx-auto w-full"> 
 
@@ -7,13 +5,18 @@
         <div class="text-4xl font-bold mb-4">カレンダー</div>
         <div class="flex justify-between items-center mb-4">
             <div class="text-4xl font-bold">{{ $year }}年{{ $month }}月</div>
-            <div class="space-x-2">
+            <div class="flex text-xl">
+                {{-- today ボタン（右だけ余白） --}}
                 <a href="{{ route('calendar.index', ['year' => now()->year, 'month' => now()->month]) }}"
-                   class="bg-blue-100 text-blue-800 px-3 py-1 rounded">Today</a>
+                class="bg-gray-500 text-white px-3 py-1 rounded mr-4">today</a>
+
+                {{-- ＜ 前月ボタン：左端なので左のみ角丸 --}}
                 <a href="{{ route('calendar.index', ['year' => \Carbon\Carbon::create($year, $month)->subMonth()->year, 'month' => \Carbon\Carbon::create($year, $month)->subMonth()->month]) }}"
-                   class="px-3 py-1 bg-gray-200 rounded">&lt;</a>
+                class="px-3 py-1 bg-black text-white rounded-l">＜</a>
+
+                {{-- ＞ 翌月ボタン：右端なので右のみ角丸 --}}
                 <a href="{{ route('calendar.index', ['year' => \Carbon\Carbon::create($year, $month)->addMonth()->year, 'month' => \Carbon\Carbon::create($year, $month)->addMonth()->month]) }}"
-                   class="px-3 py-1 bg-gray-200 rounded">&gt;</a>
+                class="px-3 py-1 bg-black text-white rounded-r -ml-px">＞</a>
             </div>
         </div>
 
@@ -23,29 +26,59 @@
             $end = $startOfMonth->copy()->endOfMonth()->endOfWeek(\Carbon\Carbon::SATURDAY);
         @endphp
 
-        <div class="grid gap-2 text-center text-sm" style="grid-template-columns: repeat(7, minmax(0, 1fr));"> 
-            @foreach (['日','月','火','水','木','金','土'] as $day)
-                <div class="font-bold">{{ $day }}</div>
-            @endforeach
 
-            @for ($date = $start->copy(); $date->lte($end); $date->addDay()) 
-                @php
-                    $dateStr = $date->format('Y-m-d');
-                    $isToday = $date->isToday();
-                @endphp
-
-                <div class="p-2 border rounded h-32 text-left overflow-y-auto {{ $isToday ? 'bg-pink-100' : 'bg-white' }}">
-                    <div class="text-xs font-semibold">{{ $date->day }}</div>
-
-                    @if (isset($events[$dateStr]))
-                        @foreach ($events[$dateStr] as $event)
-                            <div class="text-xs text-blue-700 mt-1">
-                                {{ $event->event_name }}
-                            </div>
+        <div class="w-full overflow-x-auto">
+            <table class="table-fixed border-collapse w-full text-sm text-right">
+                <thead>
+                    <tr>
+                        @foreach (['Sun','Mon','Tue','Wed','Thu','Fri','Sat'] as $day)
+                            <th class="border text-blue-600 text-center underline font-bold py-2">{{ $day }}</th>
                         @endforeach
-                    @endif
-                </div>
-            @endfor
+                    </tr>
+                </thead>
+                <tbody>
+                    @php
+                        $date = $start->copy();
+                    @endphp
+
+                    @while ($date <= $end)
+                        <tr>
+                            @for ($i = 0; $i < 7; $i++)
+                                @php
+                                    $dateStr = $date->format('Y-m-d');
+                                    $isToday = $date->isToday();
+                                    $isCurrentMonth = $date->month === $startOfMonth->month;
+                                    $cellBg = $isToday ? 'bg-pink-100' : 'bg-white';
+                                @endphp
+
+                                <td class="border align-top h-24 p-1 {{ $cellBg }}">
+                                    @if ($isCurrentMonth)
+                                        {{-- 表示月：青文字＋下線の日付＋イベント --}}
+                                        <div class="font-semibold text-blue-600 underline">
+                                            {{ $date->day }}
+                                        </div>
+
+                                        @if (isset($events[$dateStr]))
+                                            @foreach ($events[$dateStr] as $event)
+                                                <div class="text-left bg-blue-600 text-white mt-1 px-2 py-1 rounded-md block">
+                                                    {{ $event->event_name }}
+                                                </div>
+                                            @endforeach
+                                        @endif
+                                    @else
+                                        {{-- 表示月以外：灰色の日付のみ --}}
+                                        <div class="font-semibold text-gray-400">
+                                            {{ $date->day }}
+                                        </div>
+                                    @endif
+
+                                    @php $date->addDay(); @endphp
+                                </td>
+                            @endfor
+                        </tr>
+                    @endwhile
+                </tbody>
+            </table>
         </div>
     </div>
 </x-app-layout>

@@ -49,8 +49,8 @@
                 <label class="block text-sm font-bold text-gray-700 mb-1">画像の選択</label>
                     <div id="image-fields">
                         <div class="flex items-center mb-2">
-                            <input type="file" name="images[]" class="w-full border border-gray-300 rounded-md " />
-                            <button type="button" class="add-image px-2 py-1 border rounded">＋</button>
+                            <input type="file" name="images[]" class="w-full border border-gray-300 rounded-l-md " />
+                            <button type="button" class="add-image px-2 py-1 border border-green-600 text-green-600 rounded-r-md">＋</button>
                         </div>
                     </div>
             </div>
@@ -60,7 +60,7 @@
                     <div class="flex flex-wrap gap-4">
                         @foreach ($event->filename as $index => $file)
                             <div class="relative w-32 h-32 border rounded p-1">
-                                <img src="{{ asset('storage/images/' . $file) }}" class="w-full h-full object-cover rounded" />
+                                <img src="{{ asset('storage/' . $file) }}" class="w-full h-full object-cover rounded" />
                                 <div class="absolute bottom-1 left-1 bg-white bg-opacity-80 px-1 text-xs">
                                     <label>
                                         <input type="checkbox" name="delete_images[]" value="{{ $index }}" />
@@ -127,18 +127,18 @@
                 const input = document.createElement('input');
                 input.type = 'file';
                 input.name = 'images[]';
-                input.classList.add('w-full', 'border', 'border-gray-300', 'rounded-md');
+                input.classList.add('w-full', 'border', 'border-gray-300', 'rounded-l-md');
 
                 // 追加ボタン（＋）
                 const addBtn = document.createElement('button');
                 addBtn.type = 'button';
-                addBtn.classList.add('add-image', 'px-2', 'py-1', 'border', 'rounded');
+                addBtn.classList.add('add-image', 'px-2', 'py-1', 'border', 'border-green-600', 'text-green-600');
                 addBtn.textContent = '＋';
 
                 // 削除ボタン（－）
                 const removeBtn = document.createElement('button');
                 removeBtn.type = 'button';
-                removeBtn.classList.add('remove-image', 'px-2', 'py-1', 'border', 'rounded');
+                removeBtn.classList.add('remove-image', 'px-2', 'py-1', 'border', 'border-red-600', 'text-red-600', 'rounded-r-md');
                 removeBtn.textContent = '－';
 
                 newGroup.appendChild(input);

@@ -6,11 +6,11 @@
                     @csrf
                     @method('PUT')
 
-                    <h2 class="text-xl font-semibold mb-4">「{{ $event->title }}」のレビューを編集</h2>
+                    <h2 class="text-2xl font-semibold mb-4">イベントのレビュー</h2>
 
                     <!-- レーティング（リアルタイム更新） -->
                     <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">評価</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">評価（1～5）</label>
                         <input type="hidden" name="rating" id="ratingInput" value="{{ old('rating', $review->rating ?? 0) }}">
                         
                         <div id="starDisplay" class="flex text-2xl text-yellow-500 cursor-pointer select-none">

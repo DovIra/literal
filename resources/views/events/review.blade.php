@@ -5,9 +5,11 @@
                 <form method="POST" action="{{ route('events.review.store', ['id' => $event->id]) }}">
                     @csrf
 
+                    <h2 class="text-2xl font-semibold mb-4">イベントのレビュー</h2>
+
                     <!-- レーティング（リアルタイム更新） -->
                     <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">評価</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">評価（1～5）</label>
                         <input type="hidden" name="rating" id="ratingInput" value="{{ old('rating', 0) }}">
 
                         <div id="starDisplay" class="flex text-2xl text-yellow-500 cursor-pointer select-none">
@@ -30,7 +32,7 @@
                     <!-- コメント -->
                     <div class="mb-4">
                         <label for="comment" class="block text-sm font-medium text-gray-700">コメント</label>
-                        <textarea name="comment" id="comment" rows="4" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm" required>{{ old('comment') }}</textarea>
+                        <textarea name="comment" id="comment" rows="4" placeholder='ご意見や感想をどうぞ…' class="mt-1 block w-full border-gray-300 rounded-md shadow-sm" required>{{ old('comment') }}</textarea>
                         @error('comment')
                             <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
                         @enderror
