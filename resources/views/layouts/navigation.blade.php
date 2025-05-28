@@ -36,6 +36,20 @@
                         {{ __('カレンダー') }}
                     </x-nav-link>
                 </div>
+                @auth
+                    @if (Auth::user()->user_type === App\Enums\UserType::Admin->value)
+                        <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
+                            <x-nav-link :href="route('categories.index')" :active="request()->routeIs('categories.index')">
+                                {{ __('カテゴリーを追加') }}
+                            </x-nav-link>
+                        </div>
+                        <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
+                            <x-nav-link :href="route('events.import.form')" :active="request()->routeIs('events.import.form')">
+                                {{ __('イベントをまとめて作成') }}
+                            </x-nav-link>
+                        </div>
+                    @endif
+                @endauth
             </div>
 
             <!-- Settings Dropdown -->
@@ -99,15 +113,29 @@
         </div>
 
         <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
-            <x-nav-link :href="route('events.index')" :active="request()->routeIs('events.index')">
+            <x-responsive-nav-link :href="route('events.index')" :active="request()->routeIs('events.index')">
                 {{ __('イベントを探す') }}
-            </x-nav-link>
+            </x-responsive-nav-link>
         </div>      
         <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
-            <x-nav-link :href="route('calendar.index')" :active="request()->routeIs('calendar.index')">
+            <x-responsive-nav-link :href="route('calendar.index')" :active="request()->routeIs('calendar.index')">
                 {{ __('カレンダー') }}
-            </x-nav-link>
+            </x-responsive-nav-link>
         </div>  
+        @auth
+            @if (Auth::user()->user_type === App\Enums\UserType::Admin->value)
+                <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
+                    <x-responsive-nav-link :href="route('categories.index')" :active="request()->routeIs('categories.index')">
+                        {{ __('カテゴリーを追加') }}
+                    </x-responsive-nav-link>
+                </div>
+                <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
+                    <x-responsive-nav-link :href="route('events.import.form')" :active="request()->routeIs('events.import.form')">
+                        {{ __('イベントをまとめて作成') }}
+                    </x-responsive-nav-link>
+                </div>                
+            @endif
+        @endauth
 
         <!-- Responsive Settings Options -->
         <div class="pt-4 pb-1 border-t border-gray-200">
