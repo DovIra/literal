@@ -56,12 +56,13 @@
             </div>
             @if (!empty($event->filename))
                 <div class="mb-3">
-                    <label class="block text-sm font-bold text-gray-700 mb-1">既存画像</label>
                     <div class="flex flex-wrap gap-4">
                         @foreach ($event->filename as $index => $file)
-                            <div class="relative w-32 h-32 border rounded p-1">
-                                <img src="{{ asset('storage/' . $file) }}" class="w-full h-full object-cover rounded" />
-                                <div class="absolute bottom-1 left-1 bg-white bg-opacity-80 px-1 text-xs">
+                            <div class="w-32 border rounded overflow-hidden">
+                                <div class="w-full h-32 border rounded">
+                                    <img src="{{ asset('storage/' . $file) }}" class="w-full h-full object-cover" />
+                                </div>
+                                <div class="w-full bg-white bg-opacity-80 px-2 py-2 text-xs">
                                     <label>
                                         <input type="checkbox" name="delete_images[]" value="{{ $index }}" />
                                         削除

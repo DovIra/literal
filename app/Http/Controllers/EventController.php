@@ -264,7 +264,7 @@ class EventController extends Controller
             foreach ($request->file('images') as $image) {
                 if ($image->isValid()) {
                     $path = $image->store('event_images', 'public'); // 同じフォルダに統一
-                    $filenames[] = $path; // basename() は使わない
+                    $filenames[] = $path; 
                 }
             }
         }

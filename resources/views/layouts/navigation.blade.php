@@ -35,7 +35,7 @@
                     <x-nav-link :href="route('calendar.index')" :active="request()->routeIs('calendar.index')">
                         {{ __('カレンダー') }}
                     </x-nav-link>
-                </div>
+                </div>            
                 @auth
                     @if (Auth::user()->user_type === App\Enums\UserType::Admin->value)
                         <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
