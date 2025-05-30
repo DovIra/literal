@@ -42,10 +42,6 @@ class DashboardController extends Controller
                 // 今日が「イベント開催日の7日前以上かつ当日以下」か判定
                 // つまり eventDay - 7日 <= today <= eventDay
                 return $today->between($eventDay->copy()->subDays(7), $eventDay);
-            })
-            ->map(function ($notification) {
-                $notification->virtual_start_at = $notification->created_at;
-                return $notification;
             });
 
 
@@ -71,18 +67,35 @@ class DashboardController extends Controller
 
                 return $within10Days && $beforeOrOnEventDay;
             })
-            ->unique('event_id')
-            ->map(function ($notification) {
-                $notification->virtual_start_at = $notification->created_at;
-                return $notification;
-            });
+            ->unique('event_id');
 
 
         // マージして通知開始日の降順でソート
         $notifications = $eventReminderNotifications
             ->merge($newEventNotifications)
             ->sortByDesc('virtual_start_at')
-            ->values(); // インデックスをリセット
+            ->values() // インデックスをリセット
+            ->map(function ($notification) {
+                $eventName = optional($notification->event)->event_name ?? 'イベント';
+                $eventDate = optional($notification->event)->event_date;
+
+                $formattedDate = $eventDate ? Carbon::parse($eventDate)->format('Y年m月d日 H:i') : '';
+
+                if ($notification->type == Type::EventReminder->value) {
+                    $title = "{$eventName} が間もなく始まります。";
+                    $message = "{$eventName} が {$formattedDate} に開催されます。お忘れなくご参加ください！";
+                } elseif ($notification->type == Type::NewEvent->value) {
+                    $title = "新しい {$eventName} が登録されました。";
+                    $message = "{$eventName} が {$formattedDate} に開催されます。ぜひご参加ください！";
+                }
+
+                $notification->virtual_start_at = $notification->created_at;
+                $notification->custom_title = $title;
+                $notification->custom_message = $message;
+
+                return $notification;
+            });
+
 
         return view('dashboard', compact('events', 'notifications'));
     }

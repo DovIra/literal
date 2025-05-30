@@ -5,18 +5,27 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Category;
 use Illuminate\Support\Facades\Auth;
+use App\Enums\UserType;
 
 
 class CategoryController extends Controller
 {
     public function index()
     {
+        if (Auth::user()->user_type !== UserType::Admin->value) {
+            return redirect()->route('dashboard')->with('error', '管理者専用ページにアクセスしようとしました。');
+        }
+
         $categories = Category::all();
         return view('categories.index', compact('categories'));
     }
 
     public function store(Request $request)
     {
+        if (Auth::user()->user_type !== UserType::Admin->value) {
+            return redirect()->route('dashboard')->with('error', '不正な操作です。');
+        }
+
         $request->validate([
             'name' => 'required|string|max:255',
         ]);
@@ -32,6 +41,10 @@ class CategoryController extends Controller
 
     public function update(Request $request,$id)
     {
+        if (Auth::user()->user_type !== UserType::Admin->value) {
+            return redirect()->route('dashboard')->with('error', '不正な操作です。');
+        }
+
         $request->validate([
             'name' => 'required|string|max:255',
         ]);
@@ -48,6 +61,10 @@ class CategoryController extends Controller
 
     public function destroy($id)
     {
+        if (Auth::user()->user_type !== UserType::Admin->value) {
+            return redirect()->route('dashboard')->with('error', '不正な操作です。');
+        }
+
         $category = Category::findOrFail($id);
 
         if ($category->events()->exists()) {

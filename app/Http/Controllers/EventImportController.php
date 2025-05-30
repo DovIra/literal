@@ -6,16 +6,26 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use App\Models\Event;
+use App\Enums\UserType;
+use App\Enums\Type;
 
 class EventImportController extends Controller
 {
     public function showImportForm()
     {
+        if (Auth::user()->user_type !== UserType::Admin->value) {
+            return redirect()->route('dashboard')->with('error', '管理者専用ページにアクセスしようとしました。');
+        }
+
         return view('events.import');
     }
 
     public function import(Request $request)
     {
+        if (Auth::user()->user_type !== UserType::Admin->value) {
+            return redirect()->route('dashboard')->with('error', '不正な操作です。');
+        }
+
         $request->validate([
             'csv_file' => 'required|file|mimes:csv,txt|max:2048',
         ]);
@@ -70,13 +80,38 @@ class EventImportController extends Controller
                 continue;
             }
 
+            // filenameを配列に変換
+            if (!empty($data['filename'])) {
+                $data['filename'] = array_map('trim', explode(',', $data['filename']));
+            } else {
+                $data['filename'] = [];
+            }
+
             // CSVにない情報を補完
             $data['created_by'] = Auth::id() ?? 0;
             $data['updated_by'] = Auth::id() ?? 0;
 
             // 保存
-            \App\Models\Event::create($data);
+            $event = \App\Models\Event::create($data);
             $imported++;
+
+            // 通知対象のユーザー一覧を取得（全ユーザーに通知する場合）
+            $users = \App\Models\User::all(); // 必要に応じて条件を絞る
+
+            foreach ($users as $user) {
+                try {
+                    \App\Models\Notification::create([
+                        'event_id' => $event->id,
+                        'type' => Type::NewEvent->value,
+                        'user_id' => $user->id,
+                        'created_by' => Auth::id() ?? 0,
+                        'updated_by' => Auth::id() ?? 0,
+                    ]);
+                } catch (\Illuminate\Database\QueryException $e) {
+                    // 重複通知のユニーク制約に違反した場合はスキップ
+                    continue;
+                }
+            }
         }
 
         fclose($file);
@@ -92,7 +127,7 @@ class EventImportController extends Controller
     // CSVテンプレートをダウンロード
     public function downloadTemplate()
     {
-        $filePath = storage_path('app/public/event_template.csv');
+        $filePath = storage_path('app/public/events_template.csv');
 
         if (!file_exists($filePath)) {
             abort(404, 'CSVファイルが見つかりません。');

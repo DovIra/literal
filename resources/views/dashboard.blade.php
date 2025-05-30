@@ -6,6 +6,12 @@
                 @php $userId = auth()->id(); @endphp
             @endauth
 
+            @if(session('error'))
+                <div class="bg-red-100 text-red-800 p-3 rounded mb-4">
+                    {{ session('error') }}
+                </div>
+            @endif
+            
             <div class="text-4xl font-bold text-gray-800 mb-6">
                 開催が近いイベント
             </div>
@@ -59,24 +65,12 @@
                         ">
                             {{-- 通知タイトル --}}
                             <div class="text-base font-bold text-gray-900 mb-1">
-                                @if ($notification->type == \App\Enums\Type::EventReminder->value)
-                                    {{ $notification->event->event_name }} が間もなく始まります。
-                                @elseif ($notification->type == \App\Enums\Type::NewEvent->value)
-                                    新しい {{ $notification->event->event_name }} が登録されました。
-                                @endif
+                                {{ $notification->custom_title }}
                             </div>
 
                             {{-- 通知メッセージ --}}
                             <div class="text-sm text-gray-700">
-                                @php
-                                    $formattedDate = \Carbon\Carbon::parse($notification->event->event_date)->format('Y年m月d日 H:i');
-                                @endphp
-
-                                @if ($notification->type == \App\Enums\Type::EventReminder->value)
-                                    {{ $notification->event->event_name }} が {{ $formattedDate }} に開催されます。お忘れなくご参加ください！
-                                @elseif ($notification->type == \App\Enums\Type::NewEvent->value)
-                                    {{ $notification->event->event_name }} が {{ $formattedDate }} に開催されます。ぜひご参加ください！
-                                @endif
+                                {{ $notification->custom_message }}
                             </div>
 
                             {{-- 開催場所 --}}
