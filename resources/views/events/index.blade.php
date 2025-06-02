@@ -10,6 +10,16 @@
             </div>
         @endif
 
+        @if ($errors->any())
+            <div class="bg-red-200 text-red-800 px-4 py-2 rounded mb-4">
+                <ul>
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+
         <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="mb-10">
                 <div class="text-4xl font-bold text-gray-800 mb-6">

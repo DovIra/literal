@@ -37,7 +37,8 @@
                     <div class="
                         flex flex-row w-full bg-white p-4 space-x-2 
                         border-x border-t border-gray-300 
-                        @if ($loop->first) rounded-t-lg 
+                        @if ($loop->first && $loop->last) rounded-lg border-b 
+                        @elseif ($loop->first) rounded-t-lg 
                         @elseif ($loop->last) border-b rounded-b-lg 
                         @else rounded-none 
                         @endif">
@@ -51,15 +52,9 @@
                                 method="POST" class="flex space-x-2 w-full">
                             @csrf
                             @method('PUT')
-                            <input
-                                id="input-{{ $category->id }}"
-                                type="text"
-                                name="name"
-                                value="{{ old('name_'.$category->id, $category->category_name) }}"
-                                onblur="handleBlur(this, '{{ $category->category_name }}')"
-                                class="border rounded px-3 py-1 flex-1"
-                                required>
-
+                            <input id="input-{{ $category->id }}" type="text" name="name" 
+                                value="{{ old('name_'.$category->id, $category->category_name) }}" 
+                                class="border rounded px-3 py-1 flex-1" required>
                             <button type="submit" class="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600 whitespace-nowrap">
                                 編集
                             </button>
@@ -71,7 +66,8 @@
                                 onsubmit="return confirm('本当に削除しますか？')">
                             @csrf
                             @method('DELETE')
-                            <button type="submit" class="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 whitespace-nowrap">
+                            <button type="submit" 
+                                class="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 whitespace-nowrap">
                                 削除
                             </button>
                         </form>
@@ -80,13 +76,4 @@
             @endif
         </div>
     </div>
-
-    <script>
-        // フォーカスが外れたときのみチェック
-        function handleBlur(input, originalValue) {
-            if (input.value.trim() === '') {
-                input.value = originalValue;
-            }
-        }
-    </script>
 </x-app-layout>

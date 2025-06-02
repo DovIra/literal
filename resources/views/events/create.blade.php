@@ -1,7 +1,7 @@
 <x-app-layout>
 <div class="py-12">
     @if ($errors->any())
-        <div class="alert alert-danger">
+        <div class="bg-red-200 text-red-800 px-4 py-2 rounded mb-4">
             <ul>
                 @foreach ($errors->all() as $error)
                     <li>{{ $error }}</li>
@@ -22,15 +22,14 @@
                 <label for="category" class="block text-sm font-bold text-gray-700 mb-1">カテゴリ</label>
                 <select name="category_id" id="category" class="w-full border-gray-300 rounded-md  focus:ring-blue-500 focus:border-blue-500" required>
                     @if($categories->isNotEmpty())
-                        <option value="">選択してください</option>
+                        <option value="" selected>選択してください</option>
                         @foreach($categories as $category)
                             <option value="{{ $category->id }}" @if(request('category_id') == $category->id) selected @endif>
                                 {{ $category->category_name }}
                             </option>
-
                         @endforeach
                     @else
-                        <option value="0" selected>カテゴリなし</option>
+                        <option value="">カテゴリなし</option>
                     @endif
                 </select>
                 @error('category_id')<div class="text-danger">{{ $message }}</div>@enderror

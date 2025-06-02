@@ -45,8 +45,7 @@
                         <strong>{{ session('skipped') }} 件の行がバリデーションエラーでスキップされました。</strong>
                         <ul class="mt-3 list-disc list-inside space-y-2">
                             @foreach(session('skippedRows') as $row)
-                                <li>
-                                    <div class="font-semibold">行 {{ $row['line'] }} のエラー:</div>
+                                <li class="font-semibold"> {{ $row['line'] }} 行目のエラー:
                                     <ul class="ml-4 list-disc list-inside">
                                         @foreach($row['errors'] as $field => $messages)
                                             @foreach($messages as $msg)

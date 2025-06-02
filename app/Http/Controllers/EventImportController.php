@@ -65,7 +65,6 @@ class EventImportController extends Controller
             $validator = Validator::make($data, [
                 'event_name' => 'required|string|max:50',
                 'category_id' => 'required|integer|exists:categories,id',
-                'filename' => 'nullable|string',
                 'description' => 'required|string',
                 'event_date' => 'required|date',
                 'location' => 'required|string|max:50',
@@ -78,13 +77,6 @@ class EventImportController extends Controller
                     'errors' => $validator->errors()->toArray(),
                 ];
                 continue;
-            }
-
-            // filenameを配列に変換
-            if (!empty($data['filename'])) {
-                $data['filename'] = array_map('trim', explode(',', $data['filename']));
-            } else {
-                $data['filename'] = [];
             }
 
             // CSVにない情報を補完

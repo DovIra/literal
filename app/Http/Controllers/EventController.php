@@ -59,9 +59,7 @@ class EventController extends Controller
         $categoryTableHasData = Category::exists();
 
         $validated = $request->validate([
-            'category_id' => $categoryTableHasData
-                ? 'required|exists:categories,id'  // 通常：カテゴリIDはDBに存在する必要あり
-                : 'required|in:0',                 // テーブルが空なら 0 のみ許可
+            'category_id' => 'required|exists:categories,id',  // カテゴリIDはDBに存在する必要あり
             'event_name' => 'required|string|max:50',
             'description' => 'required|string',
             'date' => 'required|date|after_or_equal:today',
@@ -69,12 +67,6 @@ class EventController extends Controller
             'location' => 'required|string|max:50',
             'images.*' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
-
-        // カテゴリID取得
-        $categoryId = $validated['category_id'];
-        if (!$categoryTableHasData) {
-            $categoryId = 0; // テーブルが空のときは必ず 0
-        }
 
         $eventDateTime = date('Y-m-d H:i:s', strtotime($validated['date'] . ' ' . $validated['time']));
         $filenames = [];
@@ -90,7 +82,7 @@ class EventController extends Controller
 
         $event = Event::create([
             'event_name' => $validated['event_name'],
-            'category_id' => $categoryId,
+            'category_id' => $validated['category_id'],
             'filename' => $filenames ?: null,
             'description' => $validated['description'],
             'event_date' => $eventDateTime,
@@ -113,6 +105,7 @@ class EventController extends Controller
             ]);
         }
         
+        Auth::logout();
         return redirect()->route('login');
     }
 
@@ -171,15 +164,6 @@ class EventController extends Controller
                 'created_by' => $userId,
                 'updated_by' => $userId,
             ]);
-        } else {
-            // 既存レコードがある場合：必要に応じて更新
-            DB::table('event_participants')
-                ->where('event_id', $eventId)
-                ->where('user_id', $userId)
-                ->update([
-                    'updated_at' => now(),
-                    'updated_by' => $userId,
-                ]);
         }
 
         // 新たに通知 type=event reminder を作成
@@ -207,7 +191,7 @@ class EventController extends Controller
             ->where('user_id', $userId)
             ->delete();
 
-        // 通知テーブルから「event reminder」のみ物理削除（new eventは残す）
+        // 通知テーブルから「event reminder」のみ削除（new eventは残す）
         DB::table('notifications')
             ->where('event_id', $eventId)
             ->where('user_id', $userId)

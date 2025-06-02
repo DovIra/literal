@@ -59,10 +59,13 @@
                     @foreach ($notifications as $notification)
                         <div class="
                             w-full bg-white p-4
-                            border-x border-t border-gray-300
-                            @if ($loop->first) rounded-t-xl @endif
-                            @if ($loop->last) border-b rounded-b-xl @else rounded-none @endif
-                        ">
+                            border-x border-t border-gray-300 
+                            @if ($loop->first && $loop->last) rounded-lg border-b 
+                            @elseif ($loop->first) rounded-t-xl 
+                            @elseif ($loop->last) border-b rounded-b-xl 
+                            @else rounded-none 
+                            @endif">
+                            
                             {{-- 通知タイトル --}}
                             <div class="text-base font-bold text-gray-900 mb-1">
                                 {{ $notification->custom_title }}

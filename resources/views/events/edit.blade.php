@@ -1,7 +1,7 @@
 <x-app-layout>
 <div class="py-12">
     @if ($errors->any())
-        <div class="alert alert-danger">
+        <div class="bg-red-200 text-red-800 px-4 py-2 rounded mb-4">
             <ul>
                 @foreach ($errors->all() as $error)
                     <li>{{ $error }}</li>
