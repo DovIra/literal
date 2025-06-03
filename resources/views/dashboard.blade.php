@@ -55,7 +55,7 @@
                 通知
             </div>
             @if ($notifications->count() > 0)
-                <div class="max-w-7xl mx-auto mt-10 px-4">
+                <div class="max-w-7xl mx-auto">
                     @foreach ($notifications as $notification)
                         <div class="
                             w-full bg-white p-4

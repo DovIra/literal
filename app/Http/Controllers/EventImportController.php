@@ -8,6 +8,8 @@ use Illuminate\Support\Facades\Validator;
 use App\Models\Event;
 use App\Enums\UserType;
 use App\Enums\Type;
+use Illuminate\Support\Facades\DB;
+
 
 class EventImportController extends Controller
 {
@@ -34,86 +36,67 @@ class EventImportController extends Controller
         $path = $file->getRealPath();
 
         $file = fopen($path, 'r');
-        $header = fgetcsv($file); // 1行目をヘッダーとして取得
-
-        $skipped = 0;
-        $skippedRows = [];
+        $header = fgetcsv($file); // ヘッダー取得
         $imported = 0;
-        $rowIndex = 1;
 
-        while (($row = fgetcsv($file)) !== false) {
-            $rowIndex++;
-            
-            // 空行スキップ（全要素が空）
-            if (count(array_filter($row, fn($v) => trim($v) !== '')) === 0) {
-                continue;
-            }
+        try {
+            DB::transaction(function () use ($file, $header, &$imported) {
+                while (($row = fgetcsv($file)) !== false) {
+                    // 空行はスキップ
+                    if (empty(array_filter($row))) {
+                        continue;
+                    }
 
-            // 列数チェック
-            if (count($row) !== count($header)) {
-                $skipped++;
-                $skippedRows[] = [
-                    'line' => $rowIndex,
-                    'errors' => ['general' => ['列数がヘッダーと一致しません（' . count($row) . ' / ' . count($header) . '）'],],
-                ];
-                continue;
-            }
+                    // 列数チェック
+                    if (count($header) !== count($row)) {
+                        throw new \Exception('CSVの列数が一致しません（不正な形式の行があります）。');
+                    }
 
-            $data = array_combine($header, $row);
+                    $data = array_combine($header, $row);
 
-            // バリデーション
-            $validator = Validator::make($data, [
-                'event_name' => 'required|string|max:50',
-                'category_id' => 'required|integer|exists:categories,id',
-                'description' => 'required|string',
-                'event_date' => 'required|date',
-                'location' => 'required|string|max:50',
-            ]);
-
-            if ($validator->fails()) {
-                $skipped++;
-                $skippedRows[] = [
-                    'line' => $rowIndex,
-                    'errors' => $validator->errors()->toArray(),
-                ];
-                continue;
-            }
-
-            // CSVにない情報を補完
-            $data['created_by'] = Auth::id() ?? 0;
-            $data['updated_by'] = Auth::id() ?? 0;
-
-            // 保存
-            $event = \App\Models\Event::create($data);
-            $imported++;
-
-            // 通知対象のユーザー一覧を取得（全ユーザーに通知する場合）
-            $users = \App\Models\User::all(); // 必要に応じて条件を絞る
-
-            foreach ($users as $user) {
-                try {
-                    \App\Models\Notification::create([
-                        'event_id' => $event->id,
-                        'type' => Type::NewEvent->value,
-                        'user_id' => $user->id,
-                        'created_by' => Auth::id() ?? 0,
-                        'updated_by' => Auth::id() ?? 0,
+                    // バリデーション
+                    $validator = Validator::make($data, [
+                        'event_name' => 'required|string|max:50',
+                        'category_id' => 'required|integer|exists:categories,id',
+                        'description' => 'required|string',
+                        'event_date' => 'required|date',
+                        'location' => 'required|string|max:50',
                     ]);
-                } catch (\Illuminate\Database\QueryException $e) {
-                    // 重複通知のユニーク制約に違反した場合はスキップ
-                    continue;
+
+                    if ($validator->fails()) {
+                        throw new \Exception('CSVのバリデーションエラー: ' . json_encode($validator->errors()->all()));
+                    }
+
+                    // CSVにない情報を補完
+                    $data['created_by'] = Auth::id() ?? 0;
+                    $data['updated_by'] = Auth::id() ?? 0;
+
+                    // イベント登録
+                    $event = \App\Models\Event::create($data);
+                    $imported++;
+
+                    // 通知作成
+                    $users = \App\Models\User::all();
+                    foreach ($users as $user) {
+                        \App\Models\Notification::create([
+                            'event_id' => $event->id,
+                            'type' => \App\Enums\Type::NewEvent->value,
+                            'user_id' => $user->id,
+                            'created_by' => Auth::id() ?? 0,
+                            'updated_by' => Auth::id() ?? 0,
+                        ]);
+                    }
                 }
-            }
+            });
+
+            return back()->with(['success' => "{$imported} 件のイベントをインポートしました。"]);
+
+        } catch (\Exception $e) {
+            \Log::error("インポートエラー: " . $e->getMessage());
+            return back()->withErrors(['error' => "インポートに失敗しました: " . $e->getMessage()]);
+        } finally {
+            fclose($file);
         }
-
-        fclose($file);
-
-        return back()->with([
-            'success' => "{$imported} 件のイベントをインポートしました。",
-            'skipped' => $skipped,
-            'skippedRows' => $skippedRows,
-            'total' => $imported + $skipped,
-        ]);
     }
 
     // CSVテンプレートをダウンロード

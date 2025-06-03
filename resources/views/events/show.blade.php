@@ -16,6 +16,12 @@
                     {{ session('success') }}
                 </div>
             @endif
+
+            @if (session('status'))
+                <div class="bg-green-100 text-green-800 px-4 py-2 rounded mb-2">
+                    {{ session('status') }}
+                </div>
+            @endif
             
             <div class="text-4xl font-bold text-gray-800 mb-6">
                 イベント詳細

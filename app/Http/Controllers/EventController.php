@@ -16,6 +16,7 @@ use App\Models\EventParticipant;
 use App\Models\EventReview;
 
 
+
 class EventController extends Controller
 {
     public function index(Request $request)
@@ -80,33 +81,42 @@ class EventController extends Controller
             }
         }
 
-        $event = Event::create([
-            'event_name' => $validated['event_name'],
-            'category_id' => $validated['category_id'],
-            'filename' => $filenames ?: null,
-            'description' => $validated['description'],
-            'event_date' => $eventDateTime,
-            'location' => $validated['location'],
-            'created_by' => Auth::id() ?? 0,
-            'updated_by' => Auth::id() ?? 0,
-        ]);
+        try{
+            DB::transaction(function () use($validated, $filenames, $eventDateTime) {
+                $event = Event::create([
+                    'event_name' => $validated['event_name'],
+                    'category_id' => $validated['category_id'],
+                    'filename' => $filenames ?: null,
+                    'description' => $validated['description'],
+                    'event_date' => $eventDateTime,
+                    'location' => $validated['location'],
+                    'created_by' => Auth::id() ?? 0,
+                    'updated_by' => Auth::id() ?? 0,
+                ]);
 
-        // 全ユーザー分 通知を作成
-        $users = User::all();
+                // 全ユーザー分 通知を作成
+                $users = User::all();
 
-        foreach ($users as $user) {
-            Notification::firstOrCreate([
-                'user_id' => $user->id,
-                'event_id' => $event->id,
-                'type' => Type::NewEvent->value,
-            ], [
-                'created_by' => Auth::id() ?? 0,
-                'updated_by' => Auth::id() ?? 0,
-            ]);
+                foreach ($users as $user) {
+                    Notification::firstOrCreate([
+                        'user_id' => $user->id,
+                        'event_id' => $event->id,
+                        'type' => Type::NewEvent->value,
+                    ], [
+                        'created_by' => Auth::id() ?? 0,
+                        'updated_by' => Auth::id() ?? 0,
+                    ]);
+                }
+                
+            });
+
+            Auth::logout();
+            return redirect()->route('login');
+
+        }catch(\Exception $e){
+            \Log::error("エラー発生: " . $e->getMessage());
+            return back()->withErrors(['error' => "イベントの作成に失敗しました。"]);
         }
-        
-        Auth::logout();
-        return redirect()->route('login');
     }
 
 
@@ -146,59 +156,77 @@ class EventController extends Controller
 
     public function join(Request $request, $eventId)
     {
-        $userId = auth()->id();
+        
 
-        // 既に参加しているか確認
-        $exists = DB::table('event_participants')
-            ->where('event_id', $eventId)
-            ->where('user_id', $userId)
-            ->exists();
+        try{
+            DB::transaction(function () use($eventId) {
+                $userId = auth()->id();
 
-        if (! $exists) {
-            // 新規参加：レコードを挿入
-            DB::table('event_participants')->insert([
-                'event_id'   => $eventId,
-                'user_id'    => $userId,
-                'created_at' => now(),
-                'updated_at' => now(),
-                'created_by' => $userId,
-                'updated_by' => $userId,
-            ]);
+                // 既に参加しているか確認
+                $exists = DB::table('event_participants')
+                    ->where('event_id', $eventId)
+                    ->where('user_id', $userId)
+                    ->exists();
+
+                if (! $exists) {
+                    // 新規参加：レコードを挿入
+                    DB::table('event_participants')->insert([
+                        'event_id'   => $eventId,
+                        'user_id'    => $userId,
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                        'created_by' => $userId,
+                        'updated_by' => $userId,
+                    ]);
+                }
+
+                // 新たに通知 type=event reminder を作成
+                DB::table('notifications')->insertOrIgnore([
+                    'event_id'   => $eventId,
+                    'user_id'    => $userId,
+                    'type'       => Type::EventReminder->value,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                    'created_by' => $userId,
+                    'updated_by' => $userId,
+                ]);
+            });
+
+            return redirect()->back()->with('status', '参加しました。');
+           
+        }catch(\Exception $e){
+            \Log::error("エラー発生: " . $e->getMessage());
+            return back()->withErrors(['error' => "参加申請に失敗しました。"]);
         }
-
-        // 新たに通知 type=event reminder を作成
-        DB::table('notifications')->insertOrIgnore([
-            'event_id'   => $eventId,
-            'user_id'    => $userId,
-            'type'       => Type::EventReminder->value,
-            'created_at' => now(),
-            'updated_at' => now(),
-            'created_by' => $userId,
-            'updated_by' => $userId,
-        ]);
-
-        return redirect()->back();
     }
 
 
     public function cancelParticipation(Request $request, $eventId)
     {
-        $userId = auth()->id();
+        try{
+            DB::transaction(function () use($eventId) {
+                $userId = auth()->id();
 
-        // 参加者テーブルから該当レコードを削除
-        DB::table('event_participants')
-            ->where('event_id', $eventId)
-            ->where('user_id', $userId)
-            ->delete();
+                // 参加者テーブルから該当レコードを削除
+                DB::table('event_participants')
+                    ->where('event_id', $eventId)
+                    ->where('user_id', $userId)
+                    ->delete();
 
-        // 通知テーブルから「event reminder」のみ削除（new eventは残す）
-        DB::table('notifications')
-            ->where('event_id', $eventId)
-            ->where('user_id', $userId)
-            ->where('type', Type::EventReminder->value)
-            ->delete();
-
-        return redirect()->back()->with('status', '参加をキャンセルしました。');
+                // 通知テーブルから「event reminder」のみ削除（new eventは残す）
+                DB::table('notifications')
+                    ->where('event_id', $eventId)
+                    ->where('user_id', $userId)
+                    ->where('type', Type::EventReminder->value)
+                    ->delete();
+            });
+            
+            return redirect()->back()->with('status', '参加をキャンセルしました。');
+            
+        }catch(\Exception $e){
+            \Log::error("エラー発生: " . $e->getMessage());
+            return back()->withErrors(['error' => "参加のキャンセルに失敗しました。"]);
+        }
     }
 
     public function edit($id)
@@ -253,18 +281,26 @@ class EventController extends Controller
             }
         }
 
-        // 更新
-        $event->update([
-            'category_id' => $validated['category_id'],
-            'event_name' => $validated['event_name'],
-            'description' => $validated['description'],
-            'event_date' => $eventDateTime,
-            'location' => $validated['location'],
-            'filename' => $filenames,
-            'updated_by' => Auth::id(),
-        ]);
-
-        return redirect()->route('events.show', $event->id)->with('success', 'イベントを更新しました');;
+        try{
+            DB::transaction(function () use($validated, $filenames, $eventDateTime) {
+                // 更新
+                $event->update([
+                    'category_id' => $validated['category_id'],
+                    'event_name' => $validated['event_name'],
+                    'description' => $validated['description'],
+                    'event_date' => $eventDateTime,
+                    'location' => $validated['location'],
+                    'filename' => $filenames,
+                    'updated_by' => Auth::id(),
+                ]);
+            });
+            
+            return redirect()->route('events.show', $event->id)->with('success', 'イベントを更新しました');
+          
+        }catch(\Exception $e){
+            \Log::error("エラー発生: " . $e->getMessage());
+            return back()->withErrors(['error' => "イベントの更新に失敗しました。"]);
+        }
     }
 
     public function destroy($id)
