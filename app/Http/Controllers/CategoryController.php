@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\Category;
 use Illuminate\Support\Facades\Auth;
 use App\Enums\UserType;
+use App\Http\Requests\CategoryRequest;
 
 
 class CategoryController extends Controller
@@ -20,15 +21,11 @@ class CategoryController extends Controller
         return view('categories.index', compact('categories'));
     }
 
-    public function store(Request $request)
+    public function store(CategoryRequest $request)
     {
         if (Auth::user()->user_type !== UserType::Admin->value) {
             return redirect()->route('dashboard')->with('error', '不正な操作です。');
         }
-
-        $request->validate([
-            'name' => 'required|string|max:255',
-        ]);
 
         Category::create([
             'category_name' => $request->name,
@@ -39,15 +36,11 @@ class CategoryController extends Controller
         return redirect()->route('categories.index')->with('success', 'カテゴリを追加しました。');
     }
 
-    public function update(Request $request,$id)
+    public function update(CategoryRequest $request,$id)
     {
         if (Auth::user()->user_type !== UserType::Admin->value) {
             return redirect()->route('dashboard')->with('error', '不正な操作です。');
         }
-
-        $request->validate([
-            'name' => 'required|string|max:255',
-        ]);
 
         $category = Category::findOrFail($id);
 

@@ -14,7 +14,8 @@ use App\Enums\Type;
 use Illuminate\Support\Facades\DB;
 use App\Models\EventParticipant;
 use App\Models\EventReview;
-
+use App\Http\Requests\EventRequest;
+use App\Http\Requests\ReviewRequest;
 
 
 class EventController extends Controller
@@ -55,19 +56,9 @@ class EventController extends Controller
         return view('events.create', compact('categories'));
     }
 
-    public function store(Request $request)
+    public function store(EventRequest $request)
     {
-        $categoryTableHasData = Category::exists();
-
-        $validated = $request->validate([
-            'category_id' => 'required|exists:categories,id',  // カテゴリIDはDBに存在する必要あり
-            'event_name' => 'required|string|max:50',
-            'description' => 'required|string',
-            'date' => 'required|date|after_or_equal:today',
-            'time' => 'required|date_format:H:i',
-            'location' => 'required|string|max:50',
-            'images.*' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-        ]);
+        $validated = $request->validated();
 
         $eventDateTime = date('Y-m-d H:i:s', strtotime($validated['date'] . ' ' . $validated['time']));
         $filenames = [];
@@ -236,22 +227,13 @@ class EventController extends Controller
         return view('events.edit', compact('event', 'categories'));
     }
 
-    public function update(Request $request, $id)
+    public function update(EventRequest $request, $id)
     {
         $event = Event::findOrFail($id);
 
-        $validated = $request->validate([
-            'category_id' => 'required|exists:categories,id',
-            'event_name' => 'required|string|max:50',
-            'description' => 'required',
-            'date' => 'required|date',
-            'time' => 'required',
-            'location' => 'required|string|max:255',
-            'images.*' => 'image|mimes:jpeg,png,jpg,gif|max:2048',
-            'delete_images.*' => 'nullable|integer',
-        ]);
+        $validated = $request->validated();
 
-        $eventDateTime = Carbon::createFromFormat('Y-m-d H:i', $request->date . ' ' . $request->time)->toDateTimeString();
+        $eventDateTime = Carbon::createFromFormat('Y-m-d H:i', $validated['date'] . ' ' . $validated['time'])->toDateTimeString();
 
         // 元画像ファイル名
         $filenames = $event->filename ?? [];
@@ -263,7 +245,7 @@ class EventController extends Controller
         rsort($deleteIndexes);
         foreach ($deleteIndexes as $index) {
             if (isset($filenames[$index])) {
-                Storage::disk('public')->delete('images/' . $filenames[$index]); // 実ファイル削除
+                Storage::disk('public')->delete($filenames[$index]); // 実ファイル削除
                 unset($filenames[$index]); // 配列から削除
             }
         }
@@ -282,7 +264,7 @@ class EventController extends Controller
         }
 
         try{
-            DB::transaction(function () use($validated, $filenames, $eventDateTime) {
+            DB::transaction(function () use($validated, $filenames, $eventDateTime, $event) {
                 // 更新
                 $event->update([
                     'category_id' => $validated['category_id'],
@@ -333,12 +315,9 @@ class EventController extends Controller
         return view('events.review', compact('event'));
     }
 
-    public function reviewStore(Request $request, $id)
+    public function reviewStore(ReviewRequest $request, $id)
     {
-        $request->validate([
-            'rating' => 'required|integer|min:1|max:5',
-            'comment' => 'required|string|max:1000',
-        ]);
+        $request->validated();
 
         EventReview::create([
             'event_id'   => $id,
@@ -376,16 +355,11 @@ class EventController extends Controller
         return redirect()->route('events.show', $eventId)->with('success', 'レビューを削除しました。');
     }
     
-    public function reviewUpdate(Request $request, $reviewId)
+    public function reviewUpdate(ReviewRequest $request, $reviewId)
     {
-        $review = EventReview::where('id', $reviewId)
-            ->where('user_id', Auth::id())
-            ->firstOrFail();
+        $review = EventReview::findOrFail($reviewId);
 
-        $validated = $request->validate([
-            'rating' => 'required|integer|min:1|max:5',
-            'comment' => 'required|string|max:1000',
-        ]);
+        $validated = $request->validated();
 
         $review->update($validated);
 

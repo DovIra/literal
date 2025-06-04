@@ -16,6 +16,7 @@ use App\Models\Event;
 use Carbon\Carbon;
 use App\Models\Notification;
 use App\Enums\Type;
+use App\Http\Requests\RegisterUserRequest;
 
 class RegisteredUserController extends Controller
 {
@@ -32,14 +33,8 @@ class RegisteredUserController extends Controller
      *
      * @throws \Illuminate\Validation\ValidationException
      */
-    public function store(Request $request): RedirectResponse
+    public function store(RegisterUserRequest $request): RedirectResponse
     {
-        $request->validate([
-            'name' => ['required', 'string', 'max:10'],
-            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
-            'password' => ['required', 'confirmed', 'max:16', Rules\Password::defaults()],
-        ]);
-
         $user = User::create([
             'user_type' => UserType::Regular,
             'name' => $request->name,
