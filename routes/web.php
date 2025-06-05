@@ -7,6 +7,9 @@ use App\Http\Controllers\EventController;
 use App\Http\Controllers\CalendarController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\EventImportController;
+use App\Http\Middleware\IsAdmin;
+
+Route::middlewareGroup('admin', [IsAdmin::class]);
 
 Route::get('/', function () {
     return view('welcome');
@@ -16,6 +19,20 @@ Route::get('/dashboard', function () {
     return view('dashboard');
 })->middleware(['auth'])->name('dashboard');
 
+// 管理者専用（auth + admin）ルートグループ
+Route::middleware(['auth', 'admin'])->group(function () {
+    Route::get('/events/import', [EventImportController::class, 'showImportForm'])->name('events.import.form');
+    Route::post('/events/import', [EventImportController::class, 'import'])->name('events.import');
+
+    Route::get('/events/download-template', [EventImportController::class, 'downloadTemplate'])->name('events.downloadTemplate');
+
+    Route::get('/categories', [CategoryController::class, 'index'])->name('categories.index');
+    Route::post('/categories', [CategoryController::class, 'store'])->name('categories.store');
+    Route::put('/categories/{category}', [CategoryController::class, 'update'])->name('categories.update');
+    Route::delete('/categories/{category}', [CategoryController::class, 'destroy'])->name('categories.destroy');
+});
+
+// すべてのログインユーザーに許可
 Route::middleware('auth')->group(function () {
     Route::get('/profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
@@ -28,11 +45,6 @@ Route::middleware('auth')->group(function () {
     Route::post('/events', [EventController::class, 'store'])->name('events.store');
 
     Route::get('/events/create', [EventController::class, 'create'])->name('events.create');
-
-    Route::get('/events/import', [EventImportController::class, 'showImportForm'])->name('events.import.form');
-    Route::post('/events/import', [EventImportController::class, 'import'])->name('events.import');
-
-    Route::get('/events/download-template', [EventImportController::class, 'downloadTemplate'])->name('events.downloadTemplate');
 
     Route::get('/events/{id}/edit', [EventController::class, 'edit'])->name('events.edit');
     Route::post('/events/{id}/join', [EventController::class, 'join'])->name('events.join');
@@ -50,12 +62,6 @@ Route::middleware('auth')->group(function () {
     Route::get('/review/{reviewId}/edit', [EventController::class, 'reviewEdit'])->name('review.edit');
     Route::put('/review/{reviewId}', [EventController::class, 'reviewUpdate'])->name('review.update');
     Route::delete('/review/{reviewId}', [EventController::class, 'reviewDestroy'])->name('review.destroy');
-
-    Route::get('/categories', [CategoryController::class, 'index'])->name('categories.index');
-    Route::post('/categories', [CategoryController::class, 'store'])->name('categories.store');
-    Route::put('/categories/{category}', [CategoryController::class, 'update'])->name('categories.update');
-    Route::delete('/categories/{category}', [CategoryController::class, 'destroy'])->name('categories.destroy');
 });
-
 
 require __DIR__.'/auth.php';

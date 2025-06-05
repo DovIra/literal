@@ -9,70 +9,88 @@ use App\Models\Event;
 use App\Enums\UserType;
 use App\Enums\Type;
 use Illuminate\Support\Facades\DB;
-
+use App\Http\Requests\EventRequest;
+use App\Http\Requests\ImportCsvRequest;
 
 class EventImportController extends Controller
 {
     public function showImportForm()
     {
-        if (Auth::user()->user_type !== UserType::Admin->value) {
-            return redirect()->route('dashboard')->with('error', '管理者専用ページにアクセスしようとしました。');
-        }
-
         return view('events.import');
     }
 
-    public function import(Request $request)
+    public function import(ImportCsvRequest $request)
     {
-        if (Auth::user()->user_type !== UserType::Admin->value) {
-            return redirect()->route('dashboard')->with('error', '不正な操作です。');
-        }
-
-        $request->validate([
-            'csv_file' => 'required|file|mimes:csv,txt|max:2048',
-        ]);
+        $request->validated();
 
         $file = $request->file('csv_file');
         $path = $file->getRealPath();
 
         $file = fopen($path, 'r');
-        $header = fgetcsv($file); // ヘッダー取得
+        $csvheader = fgetcsv($file); // ヘッダー取得
         $imported = 0;
 
         try {
-            DB::transaction(function () use ($file, $header, &$imported) {
+            DB::transaction(function () use (&$request, $file, $csvheader, &$imported) {
+                $rowIndex = 1; // ヘッダー行
+
                 while (($row = fgetcsv($file)) !== false) {
+                    $rowIndex++;
+
                     // 空行はスキップ
                     if (empty(array_filter($row))) {
                         continue;
                     }
 
                     // 列数チェック
-                    if (count($header) !== count($row)) {
-                        throw new \Exception('CSVの列数が一致しません（不正な形式の行があります）。');
+                    if (count($csvheader) !== count($row)) {
+                        throw new \Exception("{$rowIndex}行目: CSVの列数が一致しません。");
                     }
 
-                    $data = array_combine($header, $row);
+                    $data = array_combine($csvheader, $row);
+
+                    $dataForValidation = [
+                        'category_id' => $data['category_id'],
+                        'event_name'  => $data['event_name'],
+                        'description' => $data['description'],
+                        'date'        => $data['event_date'],
+                        'time'        => $data['event_time'],
+                        'location'    => $data['location'],
+                    ];
+
+                    // EventRequest のルール取得
+                    $rules = (new EventRequest())->rules();
 
                     // バリデーション
-                    $validator = Validator::make($data, [
-                        'event_name' => 'required|string|max:50',
-                        'category_id' => 'required|integer|exists:categories,id',
-                        'description' => 'required|string',
-                        'event_date' => 'required|date',
-                        'location' => 'required|string|max:50',
-                    ]);
-
+                    $validator = Validator::make($dataForValidation, $rules);
                     if ($validator->fails()) {
-                        throw new \Exception('CSVのバリデーションエラー: ' . json_encode($validator->errors()->all()));
+                        $errors = $validator->errors()->toArray();
+                        $errorMessages = [];
+                        foreach ($errors as $field => $messages) {
+                            foreach ($messages as $message) {
+                                $errorMessages[] = "{$field}: {$message}";
+                            }
+                        }
+                        $errorMessage = implode('; ', $errorMessages);
+                        throw new \Exception("{$rowIndex}行目のバリデーションエラー: {$errorMessage}");
                     }
 
-                    // CSVにない情報を補完
-                    $data['created_by'] = Auth::id() ?? 0;
-                    $data['updated_by'] = Auth::id() ?? 0;
+                    // 日付結合部分の形式チェック
+                    $eventDateTime = $data['event_date'] . ' ' . $data['event_time'];
+                    if (!\DateTime::createFromFormat('Y-m-d H:i', $eventDateTime)) {
+                        throw new \Exception("日時形式が不正です。");
+                    }
 
-                    // イベント登録
-                    $event = \App\Models\Event::create($data);
+                    // テーブル用のデータ構築、イベント登録
+                    $event = \App\Models\Event::create([
+                        'category_id' => $data['category_id'],
+                        'event_name'  => $data['event_name'],
+                        'description' => $data['description'],
+                        'event_date'  => $eventDateTime,
+                        'location'    => $data['location'],
+                        'created_by'  => Auth::id() ?? 0, // CSVにない情報を補完
+                        'updated_by'  => Auth::id() ?? 0, // CSVにない情報を補完
+                    ]);
                     $imported++;
 
                     // 通知作成
