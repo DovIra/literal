@@ -52,7 +52,7 @@ class RegisteredUserController extends Controller
             Notification::firstOrCreate([
                 'user_id' => $user->id,
                 'event_id' => $event->id,
-                'type' => Type::NewEvent->value,
+                'type' => Type::NewEvent,
             ], [
                 'created_by' => 0,
                 'updated_by' => 0,

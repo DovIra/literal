@@ -17,7 +17,7 @@ class IsAdmin
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if (!Auth::check() || Auth::user()->user_type !== UserType::Admin->value) {
+        if (!Auth::check() || Auth::user()->user_type !== UserType::Admin) {
             return redirect()->route('dashboard')->with('error', '管理者専用ページにアクセスしようとしました。');
         }
 

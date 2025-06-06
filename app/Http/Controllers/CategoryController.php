@@ -19,7 +19,7 @@ class CategoryController extends Controller
 
     public function store(CategoryRequest $request)
     {
-        if (Auth::user()->user_type !== UserType::Admin->value) {
+        if (Auth::user()->user_type !== UserType::Admin) {
             return redirect()->route('dashboard')->with('error', '不正な操作です。');
         }
 
@@ -34,7 +34,7 @@ class CategoryController extends Controller
 
     public function update(CategoryRequest $request,$id)
     {
-        if (Auth::user()->user_type !== UserType::Admin->value) {
+        if (Auth::user()->user_type !== UserType::Admin) {
             return redirect()->route('dashboard')->with('error', '不正な操作です。');
         }
 

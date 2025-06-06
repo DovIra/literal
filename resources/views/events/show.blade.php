@@ -103,7 +103,7 @@
                 <!-- 内容部分（白背景） -->
                 <div class="bg-white px-4 py-4 space-y-2">
                     {{-- イベント説明 --}}
-                    <p class="text-lg font-semibold text-gray-900">
+                    <p class="text-lg font-semibold text-gray-900 break-words">
                         {{ $event->description }}
                     </p>
                 </div>
@@ -241,7 +241,7 @@
                                 </div>
 
                                 {{-- コメント --}}
-                                <p class="mt-1">{{ $review->comment }}</p>
+                                <p class="mt-1 break-words">{{ $review->comment }}</p>
                             </li>
                         @endforeach
                     </ul>

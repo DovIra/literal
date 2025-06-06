@@ -37,7 +37,7 @@
                     </x-nav-link>
                 </div>            
                 @auth
-                    @if (Auth::user()->user_type === App\Enums\UserType::Admin->value)
+                    @if (Auth::user()->user_type === App\Enums\UserType::Admin)
                         <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
                             <x-nav-link :href="route('categories.index')" :active="request()->routeIs('categories.index')">
                                 {{ __('カテゴリーを追加') }}
@@ -123,7 +123,7 @@
             </x-responsive-nav-link>
         </div>  
         @auth
-            @if (Auth::user()->user_type === App\Enums\UserType::Admin->value)
+            @if (Auth::user()->user_type === App\Enums\UserType::Admin)
                 <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
                     <x-responsive-nav-link :href="route('categories.index')" :active="request()->routeIs('categories.index')">
                         {{ __('カテゴリーを追加') }}

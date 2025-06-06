@@ -68,12 +68,12 @@
                             
                             {{-- 通知タイトル --}}
                             <div class="text-base font-bold text-gray-900 mb-1">
-                                {{ $notification->custom_title }}
+                                {{ $notification->title }}
                             </div>
 
                             {{-- 通知メッセージ --}}
                             <div class="text-sm text-gray-700">
-                                {{ $notification->custom_message }}
+                                {{ $notification->message }}
                             </div>
 
                             {{-- 開催場所 --}}

@@ -14,7 +14,7 @@ class ImportCsvRequest extends FormRequest
     public function authorize(): bool
     {
         // 管理者のみ許可
-        return Auth::check() && Auth::user()->user_type === UserType::Admin->value;
+        return Auth::check() && Auth::user()->user_type === UserType::Admin;
     }
 
     /**

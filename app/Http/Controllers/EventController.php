@@ -92,7 +92,7 @@ class EventController extends Controller
                     Notification::firstOrCreate([
                         'user_id' => $user->id,
                         'event_id' => $event->id,
-                        'type' => Type::NewEvent->value,
+                        'type' => Type::NewEvent,
                     ], [
                         'created_by' => Auth::id() ?? 0,
                         'updated_by' => Auth::id() ?? 0,
@@ -175,7 +175,7 @@ class EventController extends Controller
                 DB::table('notifications')->insertOrIgnore([
                     'event_id'   => $eventId,
                     'user_id'    => $userId,
-                    'type'       => Type::EventReminder->value,
+                    'type'       => Type::EventReminder,
                     'created_at' => now(),
                     'updated_at' => now(),
                     'created_by' => $userId,
@@ -208,7 +208,7 @@ class EventController extends Controller
                 DB::table('notifications')
                     ->where('event_id', $eventId)
                     ->where('user_id', $userId)
-                    ->where('type', Type::EventReminder->value)
+                    ->where('type', Type::EventReminder)
                     ->delete();
             });
             

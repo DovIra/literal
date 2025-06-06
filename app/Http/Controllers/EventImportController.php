@@ -64,15 +64,8 @@ class EventImportController extends Controller
                     // バリデーション
                     $validator = Validator::make($dataForValidation, $rules);
                     if ($validator->fails()) {
-                        $errors = $validator->errors()->toArray();
-                        $errorMessages = [];
-                        foreach ($errors as $field => $messages) {
-                            foreach ($messages as $message) {
-                                $errorMessages[] = "{$field}: {$message}";
-                            }
-                        }
-                        $errorMessage = implode('; ', $errorMessages);
-                        throw new \Exception("{$rowIndex}行目のバリデーションエラー: {$errorMessage}");
+                        $errorMessages = $validator->errors()->all();
+                        throw new \Exception("{$rowIndex}行目のバリデーションエラー: " . implode(', ', $errorMessages));
                     }
 
                     // 日付結合部分の形式チェック
@@ -98,7 +91,7 @@ class EventImportController extends Controller
                     foreach ($users as $user) {
                         \App\Models\Notification::create([
                             'event_id' => $event->id,
-                            'type' => \App\Enums\Type::NewEvent->value,
+                            'type' => \App\Enums\Type::NewEvent,
                             'user_id' => $user->id,
                             'created_by' => Auth::id() ?? 0,
                             'updated_by' => Auth::id() ?? 0,
