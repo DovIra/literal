@@ -6,7 +6,6 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use App\Enums\UserType;
 
 class User extends Authenticatable
 {
@@ -19,12 +18,9 @@ class User extends Authenticatable
      * @var list<string>
      */
     protected $fillable = [
-        'user_type',
         'name',
         'email',
         'password',
-        'created_by',
-        'updated_by',
     ];
 
     /**
@@ -49,15 +45,4 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
-
-    // Enumのキャスト設定
-    protected $casts = [
-            'user_type' => UserType::class,
-    ];
-
-    public function joinedEvents()
-    {
-        return $this->belongsToMany(Event::class, 'event_participants', 'user_id', 'event_id');
-    }
-
 }
