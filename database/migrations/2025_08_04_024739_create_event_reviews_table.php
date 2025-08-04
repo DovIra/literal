@@ -12,20 +12,17 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('event_participants', function (Blueprint $table) {
+        Schema::create('event_reviews', function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->unsignedBigInteger('event_id');
             $table->unsignedBigInteger('user_id');
+            $table->tinyInteger('rating')->unsigned();
+            $table->text('comment')->nullable();
 
-            // 共通項目を追加
             MigrationColumns::auditColumns($table);
 
-            // 外部キー制約
             $table->foreign('event_id')->reference('id')->on('events');
             $table->foreign('user_id')->reference('id')->on('users');
-
-            //複合ユニークキー
-            $table->unique(['event_id', 'user_id']);
         });
     }
 
@@ -34,6 +31,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('event_participants');
+        Schema::dropIfExists('event_reviews');
     }
 };

@@ -14,7 +14,7 @@ return new class extends Migration
     {
         Schema::create('categories', function (Blueprint $table) {
             $table->bigIncrements('id');
-            $table->string('title', 255);
+            $table->string('category_name', 255);
 
             // 共通項目を追加
             MigrationColumns::auditColumns($table);
