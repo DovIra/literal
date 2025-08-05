@@ -15,10 +15,9 @@ return new class extends Migration
         Schema::create('events', function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->unsignedBigInteger('category_id');
-            $table->string('event_name', 50);
+            $table->string('title', 255);
             $table->text('description');
             $table->dateTime('event_date');
-            $table->string('location', 50);
 
             // 共通項目を追加
             MigrationColumns::auditColumns($table);

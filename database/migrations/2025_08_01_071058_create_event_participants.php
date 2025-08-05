@@ -21,11 +21,7 @@ return new class extends Migration
             MigrationColumns::auditColumns($table);
 
             // 外部キー制約
-            $table->foreign('event_id')->reference('id')->on('events');
-            $table->foreign('user_id')->reference('id')->on('users');
-
-            //複合ユニークキー
-            $table->unique(['event_id', 'user_id']);
+            $table->foreign('event_id')->reference('id');
         });
     }
 

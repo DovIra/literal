@@ -13,15 +13,13 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('users', function (Blueprint $table) {
-            $table->bigIncrements('id');
-            $table->tinyInteger('user_type');
-            //'admin', 'regular'は論理的な区別の説明であり、DBにenum型や製薬としては含まれていない
-            //アプリケーション側で制御する前提
-            $table->string('name', 10);
-            $table->string('email')->unique();//UK
-            $table-> string('password', 255);
-            //Seederやコントローラーで使用　保存時にHash化 Hash::make()
-
+    
+            $table->bigIncrements('id');//AI
+            $table->enum('user_type',['admin', 'regular']);
+            $table->string('name', 10);// varchar(10)
+            $table->string('email', 255)->unique(); // UK
+            $table->string('password', 255);
+            
             MigrationColumns::auditColumns($table);
         });
     }
