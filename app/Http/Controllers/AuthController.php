@@ -21,12 +21,13 @@ class AuthController extends Controller
     public function register(Request $request)
     {
         $request->validate([
+            'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users',
             'password' => 'required|min:6|confirmed',
         ]);
 
         $user = User::create([
-            'name' => $request->email,  // копіюємо email замість name                                                                                                         
+            'name' => $request->name,                                                                                                          
             'email' => $request->email,
             'password' => Hash::make($request->password),
         ]);
@@ -74,5 +75,30 @@ class AuthController extends Controller
     public function dashboard()
     {
         return view('dashboard');
+    }
+
+    public function profile()
+    {
+        return view('auth.profile');
+    }
+    public function updateProfile(Request $request)
+    {
+        
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email,',
+            'password' => 'nullable|min:6|confirmed',
+        ]);
+        $user = User::find(Auth::id());
+        $user->name = $request->name;
+        $user->email = $request->email;
+
+        if ($request->filled('password')) {
+            $user->password = Hash::make($request->password);
+        }
+
+        $user->save();
+
+        return redirect()->route('profile')->with('success', 'プロフィールが更新されました。');
     }
 }
