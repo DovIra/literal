@@ -1,9 +1,9 @@
-<!DOCTYPE html>
-<html lang="en">
+﻿<!DOCTYPE html>
+<html lang="ja">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Event List - EventEase</title>
+    <title>イベント一覧 - EventEase</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
 </head>
 <body>
@@ -18,25 +18,25 @@
             <div class="collapse navbar-collapse" id="navbar">
                 <ul class="navbar-nav me-auto mb-2 mb-md-0">
                     <li class="nav-item ms-3">
-                        <a class="nav-link" aria-current="page" href="{{ route('dashboard') }}">Dashboard</a>
+                        <a class="nav-link" aria-current="page" href="{{ route('dashboard') }}">ホーム</a>
                     </li>
                     <li class="nav-item ms-3">
-                        <a class="nav-link" href="{{ route('events.index') }}">Events</a>
+                        <a class="nav-link" href="{{ route('events.index') }}">イベントを探す</a>
                     </li>
                 </ul>
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item ms-3 dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button"
                             data-bs-toggle="dropdown" aria-expanded="false">
-                            {{ Auth::user()->name }}
+                            {{ Auth::user()->name }}さん
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
-                            <li><a class="dropdown-item" href="{{ route('profile') }}">Profile</a></li>
+                            <li><a class="dropdown-item" href="{{ route('profile') }}">プロフィール</a></li>
                             <li><hr class="dropdown-divider"></li>
                             <li>
                                 <form method="post" action="{{ route('logout') }}">
                                     @csrf
-                                    <button type="submit" class="dropdown-item">Logout</button>
+                                    <button type="submit" class="dropdown-item">ログアウト</button>
                                 </form>
                             </li>
                         </ul>
@@ -48,8 +48,8 @@
 
     <div class="container">
         <div class="d-flex justify-content-between align-items-center mt-4">
-            <h2>Events</h2>
-            <a class="btn btn-primary" href="{{ route('events.create') }}">Create Event</a>
+            <h2>イベント一覧</h2>
+            <a class="btn btn-primary" href="{{ route('events.create') }}">イベント作成</a>
         </div>
 
         @if (session('success'))
@@ -57,18 +57,18 @@
         @endif
 
         @if ($events->isEmpty())
-            <div class="alert alert-info mt-3">No events yet.</div>
+            <div class="alert alert-info mt-3">イベントがありません。</div>
         @else
             <div class="table-responsive mt-3">
                 <table class="table table-striped align-middle">
                     <thead>
                         <tr>
-                            <th>Title</th>
-                            <th>Category</th>
-                            <th>Date</th>
-                            <th>Start</th>
-                            <th>Location</th>
-                            <th class="text-end">Actions</th>
+                            <th>タイトル</th>
+                            <th>カテゴリー</th>
+                            <th>開催日</th>
+                            <th>開始時間</th>
+                            <th>場所</th>
+                            <th class="text-end">操作</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -80,12 +80,12 @@
                                 <td>{{ $event->start_time }}</td>
                                 <td>{{ $event->location }}</td>
                                 <td class="text-end">
-                                    <a class="btn btn-sm btn-outline-secondary" href="{{ route('events.show', $event) }}">View</a>
-                                    <a class="btn btn-sm btn-outline-primary" href="{{ route('events.edit', $event) }}">Edit</a>
-                                    <form method="post" action="{{ route('events.destroy', $event) }}" class="d-inline">
+                                    <a class="btn btn-sm btn-outline-secondary" href="{{ route('events.show', $event->id) }}">詳細</a>
+                                    <a class="btn btn-sm btn-outline-primary" href="{{ route('events.edit', $event->id) }}">編集</a>
+                                    <form method="post" action="{{ route('events.destroy', $event->id) }}" class="d-inline">
                                         @csrf
                                         @method('DELETE')
-                                        <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">削除</button>
                                     </form>
                                 </td>
                             </tr>

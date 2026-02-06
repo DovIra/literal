@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>イベント作成 - EventEase</title>
+    <title>イベント編集 - EventEase</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
 </head>
 <body>
@@ -29,7 +29,7 @@
     </nav>
 
     <div class="container mt-4">
-        <h2>イベント作成</h2>
+        <h2>イベント編集</h2>
 
         @if ($errors->any())
             <div class="alert alert-danger">
@@ -41,35 +41,38 @@
             </div>
         @endif
 
-        <form method="post" action="{{ route('events.store') }}">
+        <form method="post" action="{{ route('events.update', $event) }}">
             @csrf
+            @method('PUT')
             <div class="mb-3">
                 <label for="category" class="form-label">カテゴリ</label>
-                <input type="text" class="form-control" id="category" name="category" value="{{ old('category') }}">
+                <input type="text" class="form-control" id="category" name="category" value="{{ old('category', $event->category) }}">
             </div>
             <div class="mb-3">
                 <label for="title" class="form-label">イベント名</label>
-                <input type="text" class="form-control" id="title" name="title" value="{{ old('title') }}">
+                <input type="text" class="form-control" id="title" name="title" value="{{ old('title', $event->title) }}">
             </div>
             <div class="mb-3">
-                <label for="description" class="form-label">概要</label>
-                <textarea class="form-control" id="description" name="description" rows="4">{{ old('description') }}</textarea>
+                <label for="description" class="form-label">詳細説明</label>
+                <textarea class="form-control" id="description" name="description" rows="4">{{ old('description', $event->description) }}</textarea>
             </div>
             <div class="mb-3">
                 <label for="event_date" class="form-label">開催日</label>
-                <input type="date" class="form-control" id="event_date" name="event_date" value="{{ old('event_date') }}">
+                <input type="date" class="form-control" id="event_date" name="event_date"
+                    value="{{ old('event_date', \Illuminate\Support\Carbon::parse($event->event_date)->format('Y-m-d')) }}">
             </div>
             <div class="mb-3">
                 <label for="start_time" class="form-label">開始時間</label>
-                <input type="time" class="form-control" id="start_time" name="start_time" value="{{ old('start_time') }}">
+                <input type="time" class="form-control" id="start_time" name="start_time"
+                    value="{{ old('start_time', \Illuminate\Support\Carbon::parse($event->start_time)->format('H:i')) }}">
             </div>
             <div class="mb-3">
                 <label for="location" class="form-label">場所</label>
-                <input type="text" class="form-control" id="location" name="location" value="{{ old('location') }}">
+                <input type="text" class="form-control" id="location" name="location" value="{{ old('location', $event->location) }}">
             </div>
 
             <div class="d-flex justify-content-end mt-4">
-                <button type="submit" class="btn btn-primary">作成</button>
+                <button type="submit" class="btn btn-primary">保存</button>
             </div>
         </form>
     </div>

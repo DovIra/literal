@@ -11,13 +11,13 @@ use Illuminate\Support\Facades\Hash;
 class AuthController extends Controller
 {
 
-    // Показати форму реєстрації                                                                                                                                               
+    // Показати форму реєстрації 登録フォームを表示                                                                                                                                      
     public function showRegister()
     {
         return view('auth.register');
     }
 
-    // Обробити реєстрацію                                                                                                                                                     
+    // Обробити реєстрацію 登録を処理                                                                                                                                             
     public function register(Request $request)
     {
         $request->validate([
@@ -37,13 +37,13 @@ class AuthController extends Controller
         return redirect()->route('dashboard');
     }
 
-    // Показати форму логіну                                                                                                                                                   
+    // Показати форму логіну ログインフォームを表示                                                                                                                                                  
     public function showLogin()
     {
         return view('auth.login');
     }
 
-    // Обробити логін                                                                                                                                                          
+    // Обробити логін  ログインを処理                                                                                                                                                     
     public function login(Request $request)
     {
         $credentials = $request->validate([
@@ -61,7 +61,7 @@ class AuthController extends Controller
         ]);
     }
 
-    // Вихід                                                                                                                                                                   
+    // Вихід    ログアウト                                                                                                                                                               
     public function logout(Request $request)
     {
         Auth::logout();
@@ -71,7 +71,7 @@ class AuthController extends Controller
         return redirect()->route('login');
     }
 
-    // Dashboard                                                                                                                                                               
+    // Dashboard   ダッシュボード                                                                                                                                                            
     public function dashboard()
     {
         return view('dashboard');
