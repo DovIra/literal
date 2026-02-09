@@ -28,7 +28,7 @@
                         <a class="nav-link" href="{{ route('events.index') }}">イベントを探す</a>
                     </li>
                     <li class="nav-item ms-3">
-                        <a class="nav-link" href="#">カレンダー</a>
+                        <a class="nav-link" href="{{ route('calendar') }}">カレンダー</a>
                     </li>
                 </ul>
                 <ul class="navbar-nav ms-auto">

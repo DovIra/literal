@@ -21,16 +21,16 @@
             <div class="collapse navbar-collapse" id="navbar">
                 <ul class="navbar-nav me-auto mb-2 mb-md-0">
                     <li class="nav-item ms-3">
-                        <a class="nav-link" aria-current="page" href="ダッシュボード.html">ホーム</a>
+                        <a class="nav-link" aria-current="page" href="{{ route('dashboard') }}">ホーム</a>
                     </li>
                     <li class="nav-item ms-3">
-                        <a class="nav-link" href="イベント作成画面.html">イベント作成</a>
+                        <a class="nav-link" href="{{ route('events.create') }}">イベント作成</a>
                     </li>
                     <li class="nav-item ms-3"></li>
-                    <a class="nav-link" href="イベント一覧画面.html">イベントを探す</a>
+                    <a class="nav-link" href="{{ route('events.index') }}">イベントを探す</a>
                     </li>
                     <li class="nav-item ms-3"></li>
-                    <a class="nav-link" href="カレンダー表示画面.html">カレンダー</a>
+                    <a class="nav-link" href="{{ route('calendar') }}">カレンダー</a>
                     </li>
                 </ul>
                 <ul class="navbar-nav ms-auto">

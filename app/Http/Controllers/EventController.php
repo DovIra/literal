@@ -31,22 +31,24 @@ class EventController extends Controller
             'location' => 'required|string|max:255',
         ]);
 
-        
+
         Event::create(array_merge($validated, ['user_id' => Auth::id()]));
 
         return redirect()->route('events.index')->with('success', 'Event created successfully.');
     }
 
-    public function show(Event $id)
+    public function show(Event $event)
     {
-        return view('events.show', ['event' => $id]);
+        return view('events.show', ['event' => $event]);
     }
 
-    public function edit(Event $id){
-        return view('events.edit', ['event' => $id]);
+    public function edit(Event $event)
+    {
+        return view('events.edit', ['event' => $event]);
     }
 
-    public function update(Request $request, Event $id){
+    public function update(Request $request, Event $event)
+    {
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'category' => 'required|string|max:255',
@@ -56,14 +58,28 @@ class EventController extends Controller
             'location' => 'required|string|max:255',
         ]);
 
-        $id->update($validated);
+        $event->update($validated);
 
         return redirect()->route('events.index')->with('success', 'Event updated successfully.');
     }
 
-    public function destroy(Event $id){
-        $id->delete();
+    public function destroy(Event $event)
+    {
+        $event->delete();
 
         return redirect()->route('events.index')->with('success', 'Event deleted successfully.');
+    }
+
+    public function calendar()
+    {
+        $events = Event::all()->map(function($event) {
+            return [
+                'title' => $event->title,
+                'start' => $event->event_date,
+                'url' => route('events.show', $event->id),
+            ];
+        });
+        //$events = Event::where('user_id', Auth::id())->get();
+        return view('calendar', compact('events'));
     }
 }
