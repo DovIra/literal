@@ -30,7 +30,7 @@ Route::get('/dashboard', [AuthController::class, 'dashboard'])->name('dashboard'
 
 Route::get('/calendar', [EventController::class, 'calendar'])->name('calendar')->middleware('auth');
 
-Route::middleware(['auth','can::admin'])
+Route::middleware(['auth','can:admin'])
 ->prefix('admin')
 ->name('admin.')
 ->group(function () {

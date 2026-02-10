@@ -57,7 +57,7 @@ class AuthController extends Controller
         }
 
         return back()->withErrors([
-            'email' => 'Невірний email або пароль.',
+            'email' => 'Invalid email or password.',
         ]);
     }
 
