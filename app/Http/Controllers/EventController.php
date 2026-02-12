@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Event;
 use Illuminate\Support\Facades\Auth;
+use App\Models\User;
 
 class EventController extends Controller
 {
@@ -81,5 +82,28 @@ class EventController extends Controller
         });
         //$events = Event::where('user_id', Auth::id())->get();
         return view('calendar', compact('events'));
+    }
+
+    public function participants(Event $event)
+    {
+        $participants = $event->participants; 
+        return view('events.participants', compact('event', 'participants'));
+    }
+
+    public function removeParticipant(Event $event, User $user)
+    {
+        $event->participants()->detach($user->id);
+        return redirect()->route('events.participants', $event->id)->with('success', '参加者を削除しました。');
+    }
+    public function join(Event $event)
+    {
+        $event->participants()->attach(Auth::id()); 
+        return redirect()->route('events.show', $event->id)->with('success', 'イベントに参加しました。');
+    }
+
+    public function leave(Event $event)
+    {
+        $event->participants()->detach(Auth::id()); 
+        return redirect()->route('events.show', $event->id)->with('success', 'イベントから退出しました。');
     }
 }

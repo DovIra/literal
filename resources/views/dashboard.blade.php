@@ -30,6 +30,11 @@
                     <li class="nav-item ms-3">
                         <a class="nav-link" href="{{ route('calendar') }}">カレンダー</a>
                     </li>
+                    @can('admin')
+                    <li class="nav-item ms-3">
+                        <a class="nav-link" href="{{ route('admin.users.index') }}">ユーザー管理</a>
+                    </li>
+                    @endcan
                 </ul>
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item ms-3 dropdown">
@@ -57,16 +62,25 @@
     <div class="container mt-4">
         <h2>開催日が近いイベント</h2>
         <div class="row">
+            @forelse ($events as $event)
             <div class="col-md-4">
                 <div class="card mb-4">
                     <div class="card-body">
-                        <p><span class="badge bg-secondary">申込み済み</span></p>
-                        <h5 class="card-title">Event Title</h5>
-                        <p class="card-text">Event Description...</p>
-                        <a href="#" class="btn btn-primary">詳細を見る</a>
+                        <p><span class="badge bg-secondary">{{ $event->category }}</span></p>
+                        <h5 class="card-title">{{ $event->title }}</h5>
+                        <p class="card-text">{{ Str::limit($event->description, 50) }}</p>
+                        <p class="text-muted"> {{ \Illuminate\Support\Carbon::parse($event->event_date)->format('Y-m-d') }}
+                            {{ \Illuminate\Support\Carbon::parse($event->start_time)->format('H:i') }}
+                        </p>
+                        <a href="{{ route('events.show', $event->id) }}" class="btn btn-primary">詳細を見る</a>
                     </div>
                 </div>
             </div>
+            @empty
+            <div class="col-12">
+                <div class="alert alert-info">イベントがありません。</div>
+            </div>
+            @endforelse
         </div>
 
         <h2>通知</h2>

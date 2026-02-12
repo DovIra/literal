@@ -27,7 +27,7 @@ class AuthController extends Controller
         ]);
 
         $user = User::create([
-            'name' => $request->name,                                                                                                          
+            'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
         ]);
@@ -74,16 +74,19 @@ class AuthController extends Controller
     // Dashboard   ダッシュボード                                                                                                                                                            
     public function dashboard()
     {
-        return view('dashboard');
+        // return view('dashboard');
+        $events = \App\Models\Event::latest()->take(6)->get();
+        return view('dashboard', compact('events'));
     }
 
     public function profile()
     {
-        return view('auth.profile');
+        
+        return view('profile');
     }
     public function updateProfile(Request $request)
     {
-        
+
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email,',
@@ -101,4 +104,5 @@ class AuthController extends Controller
 
         return redirect()->route('profile')->with('success', 'プロフィールが更新されました。');
     }
+
 }

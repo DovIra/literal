@@ -53,7 +53,26 @@
                 <p>{{ $event->description }}</p>
             </div>
         </div>
-
+       <div class="card mb-3">                                                                                                                                                                      
+      <div class="card-body">                                                                                                                                                                  
+          @if ($event->participants->contains(Auth::id()))                                                                                                                                     
+              <p><span class="badge bg-success">参加登録済み</span></p>                                                                                                                        
+              <form method="post" action="{{ route('events.leave', $event->id) }}" class="d-inline">                                                                                           
+                  @csrf                                                                                                                                                                        
+                  @method('DELETE')                                                                                                                                                            
+                  <button type="submit" class="btn btn-warning">参加をキャンセル</button>                                                                                                      
+              </form>                                                                                                                                                                          
+          @else                                                                                                                                                                                
+              <form method="post" action="{{ route('events.join', $event->id) }}" class="d-inline">                                                                                            
+                  @csrf                                                                                                                                                                        
+                  <button type="submit" class="btn btn-success">参加する</button>                                                                                                              
+              </form>                                                                                                                                                                          
+          @endif                                                                                                                                                                               
+                                                                                                                                                                                               
+          <a href="{{ route('events.participants', $event->id) }}" class="btn btn-secondary ms-2">参加者管理</a>                                                                               
+      </div>                                                                                                                                                                                   
+  </div>
+            
         <div class="d-flex justify-content-end mt-4">
             <a href="{{ route('events.edit', $event->id) }}" class="btn btn-primary me-2">編集</a>
             <form method="post" action="{{ route('events.destroy', $event->id) }}" class="d-inline">

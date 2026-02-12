@@ -21,7 +21,7 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Gate::define('admin', function ($user) {
-            return $user->is_admin; // Припускаємо, що у вас є поле is_admin в таблиці користувачів
+            return $user->role === 'admin'; // Припускаємо, що у вас є поле role в таблиці користувачів
         });
     }
 }

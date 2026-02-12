@@ -18,10 +18,12 @@ Route::post('/login', [AuthController::class, 'login']);
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
 Route::get('/profile', [AuthController::class, 'profile'])->name('profile')->middleware('auth');
-Route::post('/profile/update', [AuthController::class, 'updateProfile'])->middleware('auth');
+Route::post('/profile/update', [AuthController::class, 'updateProfile'])->name('profile.update')->middleware('auth');
 
 Route::middleware('auth')->group(function () {
     Route::resource('events', EventController::class);
+    Route::get('/events/{event}/participants', [EventController::class, 'participants'])->name('events.participants');
+    Route::delete('/events/{event}/participants/{user}', [EventController::class, 'removeParticipant'])->name('events.participants.remove');
 });
 
 // Optional: make / go to login
@@ -39,3 +41,6 @@ Route::middleware(['auth','can:admin'])
     Route::put('/users/{user}', [UserController::class, 'update'])->name('users.update');
     Route::delete('/users/{user}', [UserController::class, 'destroy'])->name('users.destroy');
 });
+
+Route::post('/events/{event}/join', [EventController::class, 'join'])->name('events.join');
+Route::delete('/events/{event}/leave', [EventController::class, 'leave'])->name('events.leave');
